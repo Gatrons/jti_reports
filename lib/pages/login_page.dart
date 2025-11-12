@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart';
 import 'register_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -72,6 +73,17 @@ class _LoginPageState extends State<LoginPage>
     setState(() {
       _isLoading = false;
     });
+
+    Navigator.pushReplacement(
+      context,
+      PageRouteBuilder(
+        transitionDuration: const Duration(milliseconds: 700),
+        pageBuilder: (_, __, ___) => const MainPage(),
+        transitionsBuilder: (_, animation, __, child) {
+          return FadeTransition(opacity: animation, child: child);
+        },
+      ),
+    );
 
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
