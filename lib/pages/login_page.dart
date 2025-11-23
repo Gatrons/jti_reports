@@ -346,6 +346,13 @@ class _LoginPageState extends State<LoginPage>
                               alignment: Alignment.centerRight,
                               child: GestureDetector(
                                 onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ForgotPasswordPage(),
+                                    ),
+                                  );
                                 },
                                 child: Text(
                                   'Forgot Password?',
