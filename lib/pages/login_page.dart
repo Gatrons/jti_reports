@@ -1,5 +1,7 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:jti_reports/pages/forgot_password_page.dart';
 import '../main.dart';
 import 'register_page.dart';
 
@@ -82,7 +84,28 @@ class _LoginPageState extends State<LoginPage>
         password: password,
       );
 
-      setState(() => _isLoading = false);
+      final user = FirebaseAuth.instance.currentUser!;
+      await user.reload();
+
+      await FirebaseFirestore.instance.collection("users").doc(user.uid).update(
+        {"emailVerified": user.emailVerified},
+      );
+
+      if (!user.emailVerified) {
+        await FirebaseAuth.instance.signOut();
+
+        setState(() => _isLoading = false);
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text("Email belum diverifikasi! Cek email Anda."),
+            backgroundColor: Colors.orange,
+            behavior: SnackBarBehavior.floating,
+            margin: EdgeInsets.only(bottom: 20, left: 20, right: 20),
+          ),
+        );
+        return;
+      }
 
       Navigator.pushReplacement(
         context,
@@ -90,16 +113,14 @@ class _LoginPageState extends State<LoginPage>
       );
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text("Login berhasil!"),
+        const SnackBar(
+          content: Text("Login berhasil!"),
           backgroundColor: Colors.green,
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+          margin: EdgeInsets.only(bottom: 20, left: 20, right: 20),
         ),
       );
     } on FirebaseAuthException catch (e) {
-      setState(() => _isLoading = false);
-
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.message ?? "Login gagal"),
@@ -325,7 +346,13 @@ class _LoginPageState extends State<LoginPage>
                               alignment: Alignment.centerRight,
                               child: GestureDetector(
                                 onTap: () {
-                                  // Add forgot password functionality
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          ForgotPasswordPage(),
+                                    ),
+                                  );
                                 },
                                 child: Text(
                                   'Forgot Password?',

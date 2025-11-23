@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:jti_reports/pages/email_verification_page.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -75,6 +76,8 @@ class _RegisterPageState extends State<RegisterPage>
         const SnackBar(
           content: Text("Semua kolom harus diisi"),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: 20, left: 20, right: 20),
         ),
       );
       return;
@@ -85,6 +88,8 @@ class _RegisterPageState extends State<RegisterPage>
         const SnackBar(
           content: Text("Password tidak sama"),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: 20, left: 20, right: 20),
         ),
       );
       return;
@@ -95,6 +100,8 @@ class _RegisterPageState extends State<RegisterPage>
         const SnackBar(
           content: Text("Anda harus menyetujui syarat & ketentuan"),
           backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: 20, left: 20, right: 20),
         ),
       );
       return;
@@ -106,10 +113,17 @@ class _RegisterPageState extends State<RegisterPage>
       final userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
 
-      await FirebaseFirestore.instance
-          .collection("users")
-          .doc(userCredential.user!.uid)
-          .set({"name": name, "email": email, "createdAt": Timestamp.now()});
+      final user = userCredential.user;
+
+      await user!.sendEmailVerification();
+
+      await FirebaseFirestore.instance.collection("users").doc(user.uid).set({
+        "name": name,
+        "email": email,
+        "role": "mahasiswa",
+        "emailVerified": false,
+        "createdAt": Timestamp.now(),
+      });
 
       setState(() => _isLoading = false);
 
@@ -117,32 +131,27 @@ class _RegisterPageState extends State<RegisterPage>
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Registrasi berhasil!"),
+          content: Text("Registrasi berhasil! Cek email untuk verifikasi."),
           backgroundColor: Colors.green,
+          behavior: SnackBarBehavior.floating,
+          margin: EdgeInsets.only(bottom: 20, left: 20, right: 20),
         ),
       );
 
-      Navigator.pop(context);
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const EmailVerificationPage()),
+      );
     } on FirebaseAuthException catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.message ?? "Registrasi gagal"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text("Terjadi kesalahan, coba lagi"),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
+      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? "Registrasi gagal"),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+        ),
+      );
     }
   }
 
