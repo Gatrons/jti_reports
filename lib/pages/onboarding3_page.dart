@@ -93,8 +93,8 @@ class _OnboardingPageState extends State<OnboardingPage> with SingleTickerProvid
   @override
   Widget build(BuildContext context) {
     // Warna dari HEX string
-    final Color deepPurpleHex = const Color(0xFF67008C);
-    final Color darkPurpleHex = const Color(0xFF1C0026);
+    final Color deepPurpleHex = const Color.fromARGB(255, 156, 54, 193);
+    final Color darkPurpleHex = const Color.fromARGB(255, 161, 59, 198);
 
     // Definisikan ColorScheme untuk warna aksen dan teks.
     // Brightness.light digunakan untuk teks hitam default di atas latar putih.
