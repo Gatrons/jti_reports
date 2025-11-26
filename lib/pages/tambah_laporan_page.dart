@@ -1,4 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as p;
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:image_picker/image_picker.dart';
 import 'lokasi_page.dart'; // Pastikan file ini ada di folder pages
 
 class TambahlaporanPage extends StatefulWidget {
@@ -10,18 +16,170 @@ class TambahlaporanPage extends StatefulWidget {
 
 class _TambahlaporanPageState extends State<TambahlaporanPage> {
   // Controllers
-  final TextEditingController _jenisKerusakanController = TextEditingController();
+  final TextEditingController _jenisKerusakanController =
+      TextEditingController();
   final TextEditingController _deskripsiController = TextEditingController();
-  final TextEditingController _lokasiDisplayController = TextEditingController(); // Hanya untuk menampilkan teks lokasi
+  final TextEditingController _lokasiDisplayController =
+      TextEditingController(); // Hanya untuk menampilkan teks lokasi
 
   LokasiData? _selectedLocation;
   String? _selectedSeverity;
-  
-  // List Dummy Media (String path gambar asset/dummy)
-  // Kita pakai list string untuk simulasi, nanti diganti XFile dari image_picker
-  List<String> _dummyMedia = []; 
+  final ImagePicker _picker = ImagePicker();
+  final int _maxMedia = 3;
+  List<XFile> _media = [];
 
-  final List<String> _severityOptions = ['Rendah', 'Sedang', 'Tinggi', 'Bahaya'];
+  // Fungsi pick image & setState
+  Future<void> _pickImages() async {
+    final remaining = _maxMedia - _media.length;
+    if (remaining <= 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Maksimum 3 media")));
+      return;
+    }
+    try {
+      final List<XFile>? picked = await _picker.pickMultiImage(
+        imageQuality: 80,
+      );
+      if (picked == null || picked.isEmpty) return;
+      setState(() {
+        final toAdd = picked.take(remaining).toList();
+        _media.addAll(toAdd);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memilih gambar: $e')));
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    final remaining = _maxMedia - _media.length;
+    if (remaining <= 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Maksimum 3 media")));
+      return;
+    }
+    try {
+      final XFile? picked = await _picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(seconds: 60),
+      );
+      if (picked == null) return;
+      setState(() => _media.add(picked));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memilih video: $e')));
+    }
+  }
+
+  void _showMediaPickerSheet() {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo),
+              title: const Text('Pilih Foto dari Galeri'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickImages();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam),
+              title: const Text('Pilih Video'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickVideo();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.close),
+              title: const Text('Batal'),
+              onTap: () => Navigator.pop(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMediaThumbnail(XFile media, int index) {
+    final pathLower = media.path.toLowerCase();
+    final isVideo =
+        pathLower.endsWith('.mp4') ||
+        pathLower.endsWith('.mov') ||
+        pathLower.endsWith('.avi') ||
+        pathLower.endsWith('.mkv');
+
+    return Stack(
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          margin: const EdgeInsets.only(right: 8),
+          decoration: BoxDecoration(
+            color: Colors.deepPurple.shade50,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: Colors.deepPurple.shade100),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: isVideo
+                ? Stack(
+                    children: [
+                      // Simpel preview untuk video: tampilkan ikon video
+                      Container(color: Colors.black54),
+                      const Center(
+                        child: Icon(
+                          Icons.videocam,
+                          color: Colors.white,
+                          size: 30,
+                        ),
+                      ),
+                    ],
+                  )
+                : Image.file(
+                    File(media.path),
+                    width: 80,
+                    height: 80,
+                    fit: BoxFit.cover,
+                  ),
+          ),
+        ),
+        Positioned(
+          right: 0,
+          top: 0,
+          child: GestureDetector(
+            onTap: () {
+              setState(() {
+                _media.removeAt(index);
+              });
+            },
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Colors.red,
+                shape: BoxShape.circle,
+              ),
+              padding: const EdgeInsets.all(4),
+              child: const Icon(Icons.close, size: 14, color: Colors.white),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  final List<String> _severityOptions = [
+    'Rendah',
+    'Sedang',
+    'Tinggi',
+    'Bahaya',
+  ];
 
   @override
   void dispose() {
@@ -29,58 +187,6 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
     _deskripsiController.dispose();
     _lokasiDisplayController.dispose();
     super.dispose();
-  }
-
-  // --- LOGIC DUMMY FOTO/VIDEO ---
-  void _addDummyMedia(String type) {
-    setState(() {
-      // Simulasi menambah file dummy ke list
-      if (type == 'video') {
-        _dummyMedia.add('video_placeholder'); // Penanda ini video
-      } else {
-        _dummyMedia.add('image_placeholder'); // Penanda ini gambar
-      }
-    });
-    Navigator.pop(context); // Tutup modal
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Media dummy berhasil ditambahkan!")),
-    );
-  }
-
-  void _showMediaPicker() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const Text("Tambah Foto/Video (Simulasi)", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.deepPurple)),
-            const SizedBox(height: 20),
-            ListTile(
-              leading: const Icon(Icons.camera_alt, color: Colors.deepPurple),
-              title: const Text("Ambil Foto (Kamera)"),
-              onTap: () => _addDummyMedia('image'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.image, color: Colors.deepPurple),
-              title: const Text("Pilih dari Galeri"),
-              onTap: () => _addDummyMedia('image'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam, color: Colors.deepPurple),
-              title: const Text("Rekam Video"),
-              onTap: () => _addDummyMedia('video'),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   // --- NAVIGASI KE PETA ---
@@ -94,15 +200,62 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
       setState(() {
         _selectedLocation = result;
         // Update text field agar user melihat lokasi yang dipilih
-        _lokasiDisplayController.text = "${result.namaLokasi} (${result.patokan})";
+        _lokasiDisplayController.text =
+            "${result.namaLokasi} (${result.patokan})";
       });
+    }
+  }
+
+  Future<void> uploadForm() async {
+    try {
+      // Simpan media ke folder lokal aplikasi
+      final appDir = await getApplicationDocumentsDirectory();
+      final mediaDir = Directory(p.join(appDir.path, 'laporan_media'));
+      if (!await mediaDir.exists()) {
+        await mediaDir.create(recursive: true);
+      }
+
+      List<String> mediaPaths = [];
+      for (var media in _media) {
+        final srcFile = File(media.path);
+        final filename = '${DateTime.now().millisecondsSinceEpoch}_${media.name}';
+        final destPath = p.join(mediaDir.path, filename);
+        final copied = await srcFile.copy(destPath);
+        mediaPaths.add(copied.path);
+      }
+
+      // Simpan data laporan ke Firestore
+      await FirebaseFirestore.instance.collection('reports').add({
+        'jenis_kerusakan': _jenisKerusakanController.text,
+        'deskripsi': _deskripsiController.text,
+        'lokasi': _selectedLocation != null
+            ? {
+                'nama_lokasi': _selectedLocation!.namaLokasi,
+                'patokan': _selectedLocation!.patokan,
+                'latitude': _selectedLocation!.latitude,
+                'longitude': _selectedLocation!.longitude,
+              }
+            : null,
+        'tingkat_keparahan': _selectedSeverity,
+        'media_paths': mediaPaths,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Laporan berhasil dikirim")));
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal mengirim laporan: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white, // Background putih bersih seperti di gambar
+      backgroundColor:
+          Colors.white, // Background putih bersih seperti di gambar
       appBar: AppBar(
         title: const Text(
           'Pengajuan Laporan',
@@ -111,11 +264,12 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
         backgroundColor: Colors.deepPurple,
         centerTitle: true,
         elevation: 0,
-        automaticallyImplyLeading: false, // Hilangkan tombol back default karena di tab utama
+        automaticallyImplyLeading:
+            false, // Hilangkan tombol back default karena di tab utama
       ),
       // Tambahkan padding bawah agar tidak tertutup navbar
       body: SingleChildScrollView(
-        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100), 
+        padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -143,7 +297,8 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
             _buildLabel("Lokasi Fasilitas"),
             GestureDetector(
               onTap: _openLocationPicker,
-              child: AbsorbPointer( // Mencegah keyboard muncul
+              child: AbsorbPointer(
+                // Mencegah keyboard muncul
                 child: _buildTextField(
                   controller: _lokasiDisplayController,
                   hint: "Pilih lokasi fasilitas...",
@@ -178,16 +333,29 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                   value: _selectedSeverity,
                   hint: Row(
                     children: [
-                      Icon(Icons.warning_amber_rounded, color: Colors.deepPurple, size: 22),
+                      Icon(
+                        Icons.warning_amber_rounded,
+                        color: Colors.deepPurple,
+                        size: 22,
+                      ),
                       const SizedBox(width: 12),
-                      Text("Pilih tingkat keparahan", style: TextStyle(color: Colors.grey[600], fontSize: 14)),
+                      Text(
+                        "Pilih tingkat keparahan",
+                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                      ),
                     ],
                   ),
-                  icon: const Icon(Icons.arrow_drop_down, color: Colors.deepPurple),
+                  icon: const Icon(
+                    Icons.arrow_drop_down,
+                    color: Colors.deepPurple,
+                  ),
                   items: _severityOptions.map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value, style: const TextStyle(color: Colors.deepPurple)),
+                      child: Text(
+                        value,
+                        style: const TextStyle(color: Colors.deepPurple),
+                      ),
                     );
                   }).toList(),
                   onChanged: (val) => setState(() => _selectedSeverity = val),
@@ -207,48 +375,68 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
               ),
               child: Column(
                 children: [
-                  if (_dummyMedia.isEmpty) ...[
-                    // Tampilan Kosong (Default seperti gambar)
-                    GestureDetector(
-                      onTap: _showMediaPicker,
-                      child: Column(
-                        children: [
+                  GestureDetector(
+                    onTap: _showMediaPickerSheet,
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 10),
+                        // Jika ada media tampilkan thumbnail list
+                        if (_media.isNotEmpty) ...[
+                          SizedBox(
+                            height: 90,
+                            child: ListView.builder(
+                              scrollDirection: Axis.horizontal,
+                              itemCount:
+                                  _media.length +
+                                  (_media.length < _maxMedia ? 1 : 0),
+                              itemBuilder: (context, idx) {
+                                if (idx < _media.length) {
+                                  final m = _media[idx];
+                                  return _buildMediaThumbnail(m, idx);
+                                } else {
+                                  // Tombol tambah
+                                  return GestureDetector(
+                                    onTap: _showMediaPickerSheet,
+                                    child: Container(
+                                      width: 80,
+                                      height: 80,
+                                      margin: const EdgeInsets.only(right: 8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.deepPurple.shade100,
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                      child: const Center(
+                                        child: Icon(
+                                          Icons.add,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          ),
                           const SizedBox(height: 10),
-                          Icon(Icons.camera_alt_outlined, size: 50, color: Colors.deepPurple.shade300),
+                        ] else ...[
+                          Icon(
+                            Icons.camera_alt_outlined,
+                            size: 50,
+                            color: Colors.deepPurple.shade300,
+                          ),
                           const SizedBox(height: 10),
                           const Text(
-                            "Unggah atau Pilih Foto Kerusakan",
-                            style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.w500),
+                            "Unggah atau Pilih Foto/Video (maks 3)",
+                            style: TextStyle(
+                              color: Colors.deepPurple,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                           const SizedBox(height: 10),
                         ],
-                      ),
-                    ),
-                  ] else ...[
-                    // Tampilan Grid (Jika sudah ada foto/video dummy)
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        ..._dummyMedia.map((media) => _buildMediaThumbnail(media)),
-                        // Tombol Tambah Lagi
-                        if (_dummyMedia.length < 3)
-                          GestureDetector(
-                            onTap: _showMediaPicker,
-                            child: Container(
-                              width: 80,
-                              height: 80,
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(10),
-                                border: Border.all(color: Colors.deepPurple.shade200),
-                              ),
-                              child: const Icon(Icons.add, color: Colors.deepPurple),
-                            ),
-                          ),
                       ],
                     ),
-                  ]
+                  ),
                 ],
               ),
             ),
@@ -259,18 +447,15 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
               width: double.infinity,
               height: 55,
               child: ElevatedButton(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("Laporan berhasil dikirim (Simulasi)")),
-                  );
-                  // Reset form dummy
+                onPressed: () async {
+                  await uploadForm();
                   setState(() {
-                    _dummyMedia.clear();
                     _jenisKerusakanController.clear();
                     _lokasiDisplayController.clear();
                     _deskripsiController.clear();
                     _selectedSeverity = null;
                     _selectedLocation = null;
+                    _media.clear();
                   });
                 },
                 style: ElevatedButton.styleFrom(
@@ -282,7 +467,11 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                 ),
                 child: const Text(
                   "Kirim Laporan",
-                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ),
@@ -327,48 +516,12 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
           hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
           prefixIcon: Icon(icon, color: Colors.deepPurple, size: 22),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 10),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 15,
+            horizontal: 10,
+          ),
         ),
       ),
-    );
-  }
-
-  Widget _buildMediaThumbnail(String type) {
-    return Stack(
-      children: [
-        Container(
-          width: 80,
-          height: 80,
-          decoration: BoxDecoration(
-            color: Colors.deepPurple.shade100,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.deepPurple),
-          ),
-          child: Center(
-            child: Icon(
-              type == 'video' ? Icons.videocam : Icons.image,
-              color: Colors.deepPurple,
-              size: 30,
-            ),
-          ),
-        ),
-        Positioned(
-          top: 0,
-          right: 0,
-          child: GestureDetector(
-            onTap: () {
-              setState(() {
-                _dummyMedia.remove(type); // Hapus item dummy
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.all(2),
-              decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-              child: const Icon(Icons.close, size: 14, color: Colors.white),
-            ),
-          ),
-        ),
-      ],
     );
   }
 }
