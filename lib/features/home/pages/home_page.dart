@@ -5,7 +5,7 @@ import 'package:jti_reports/features/lapor/pages/tambah_laporan_page.dart';
 
 import '../../../core/widgets/appbar/main_app_bar.dart';
 import '../../../core/widgets/drawer/main_drawer.dart';
-import 'package:jti_reports/widgets/reports_list.dart';
+import 'package:jti_reports/core/widgets/reports/reports_list.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});

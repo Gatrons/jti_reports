@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import '../../../core/widgets/appbar/main_app_bar.dart';
 import '../../../core/widgets/drawer/main_drawer.dart';
-import 'detail_laporan_page.dart';
-import 'package:jti_reports/widgets/reports_list.dart';
+import 'package:jti_reports/core/widgets/reports/reports_list.dart';
 
 class RiwayatPage extends StatelessWidget {
   const RiwayatPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: _buildAppBar(), body: _buildBody(context));
+    return Scaffold(
+      drawer: const MainDrawer(),
+      appBar: const MainAppBar(title: 'Riwayat'),
+      body: _buildBody(context),
+    );
   }
 
   // ============ METHOD BUILD WIDGET ============
