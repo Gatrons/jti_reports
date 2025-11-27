@@ -5,7 +5,7 @@ import 'package:jti_reports/core/utils/error_handler.dart';
 import 'package:jti_reports/core/widgets/custom_text_field.dart';
 import 'package:jti_reports/core/widgets/loading_button.dart';
 import 'package:jti_reports/features/auth/services/auth_service.dart';
-import 'package:jti_reports/pages/forgot_password_page.dart';
+import 'package:jti_reports/features/auth/pages/forgot_password_page.dart';
 import '../../../main.dart';
 import 'register_page.dart';
 
