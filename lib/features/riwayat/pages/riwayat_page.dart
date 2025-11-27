@@ -4,7 +4,7 @@ import '../../../core/widgets/drawer/main_drawer.dart';
 import 'package:jti_reports/core/widgets/reports/reports_list.dart';
 
 class RiwayatPage extends StatelessWidget {
-  const RiwayatPage({super.key});
+  const RiwayatPage({super.key, required void Function(int index) onTabChange});
 
   @override
   Widget build(BuildContext context) {
@@ -16,18 +16,6 @@ class RiwayatPage extends StatelessWidget {
   }
 
   // ============ METHOD BUILD WIDGET ============
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: const Text(
-        'Riwayat Laporan',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      ),
-      centerTitle: true,
-      backgroundColor: Colors.deepPurple,
-      elevation: 4,
-    );
-  }
-
   Widget _buildBody(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),

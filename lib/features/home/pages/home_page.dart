@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:jti_reports/features/riwayat/pages/detail_laporan_page.dart';
-import 'package:jti_reports/features/riwayat/pages/riwayat_page.dart';
-import 'package:jti_reports/features/lapor/pages/tambah_laporan_page.dart';
+// import 'package:jti_reports/features/riwayat/pages/detail_laporan_page.dart';
+// import 'package:jti_reports/features/riwayat/pages/riwayat_page.dart';
+// import 'package:jti_reports/features/lapor/pages/tambah_laporan_page.dart';
 
 import '../../../core/widgets/appbar/main_app_bar.dart';
 import '../../../core/widgets/drawer/main_drawer.dart';
 import 'package:jti_reports/core/widgets/reports/reports_list.dart';
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final void Function(int index) onTabChange;
+
+  const HomePage({super.key, required this.onTabChange});
 
   @override
   Widget build(BuildContext context) {
@@ -20,18 +22,6 @@ class HomePage extends StatelessWidget {
   }
 
   // ============ METHOD BUILD WIDGET ============
-  // AppBar _buildAppBar() {
-  //   return AppBar(
-  //     title: const Text(
-  //       'Beranda',
-  //       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-  //     ),
-  //     centerTitle: true,
-  //     backgroundColor: Colors.deepPurple,
-  //     elevation: 4,
-  //   );
-  // }
-
   Widget _buildBody(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -39,7 +29,7 @@ class HomePage extends StatelessWidget {
         children: [
           _buildHeaderWelcome(),
           const SizedBox(height: 20),
-          _buildBuatLaporanCard(context),
+          _buildBuatLaporanCard(),
           const SizedBox(height: 30),
           _buildLaporanTerakhirSection(context),
         ],
@@ -68,7 +58,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildBuatLaporanCard(BuildContext context) {
+  Widget _buildBuatLaporanCard() {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -96,38 +86,61 @@ class HomePage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 10),
-          _buildTombolBuatLaporan(context),
+
+          ElevatedButton(
+            onPressed: () => onTabChange(2),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.deepPurple,
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+            ),
+            child: const Text(
+              'Buat Laporan',
+              style: TextStyle(fontSize: 16, color: Colors.white),
+            ),
+          ),
+
           const SizedBox(height: 5),
-          _buildTombolLihatRiwayat(context),
+
+          // ⬇⬇ FIX: pindah ke tab "Riwayat"
+          TextButton(
+            onPressed: () => onTabChange(0),
+            child: Text(
+              'Lihat Riwayat Pelaporan',
+              style: TextStyle(color: Colors.deepPurple),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildTombolBuatLaporan(BuildContext context) {
-    return ElevatedButton(
-      onPressed: () => _navigateToTambahLaporan(context),
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.deepPurple,
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      ),
-      child: const Text(
-        'Buat Laporan',
-        style: TextStyle(fontSize: 16, color: Colors.white),
-      ),
-    );
-  }
+  // Widget _buildTombolBuatLaporan(BuildContext context) {
+  //   return ElevatedButton(
+  //     onPressed: () => _navigateToTambahLaporan(context),
+  //     style: ElevatedButton.styleFrom(
+  //       backgroundColor: Colors.deepPurple,
+  //       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
+  //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+  //     ),
+  //     child: const Text(
+  //       'Buat Laporan',
+  //       style: TextStyle(fontSize: 16, color: Colors.white),
+  //     ),
+  //   );
+  // }
 
-  Widget _buildTombolLihatRiwayat(BuildContext context) {
-    return TextButton(
-      onPressed: () => _navigateToRiwayat(context),
-      child: Text(
-        'Lihat Riwayat Pelaporan',
-        style: TextStyle(color: Colors.deepPurple),
-      ),
-    );
-  }
+  // Widget _buildTombolLihatRiwayat(BuildContext context) {
+  //   return TextButton(
+  //     onPressed: () => _navigateToRiwayat(context),
+  //     child: Text(
+  //       'Lihat Riwayat Pelaporan',
+  //       style: TextStyle(color: Colors.deepPurple),
+  //     ),
+  //   );
+  // }
 
   Widget _buildLaporanTerakhirSection(BuildContext context) {
     return Column(
@@ -156,37 +169,37 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildBadgeStatus(LaporanModel laporan) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(
-        color: laporan.warnaStatus.withOpacity(0.2),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Text(
-        laporan.status,
-        style: TextStyle(
-          color: laporan.warnaStatus,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
-    );
-  }
+  // Widget _buildBadgeStatus(LaporanModel laporan) {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+  //     decoration: BoxDecoration(
+  //       color: laporan.warnaStatus.withOpacity(0.2),
+  //       borderRadius: BorderRadius.circular(12),
+  //     ),
+  //     child: Text(
+  //       laporan.status,
+  //       style: TextStyle(
+  //         color: laporan.warnaStatus,
+  //         fontWeight: FontWeight.bold,
+  //       ),
+  //     ),
+  //   );
+  // }
 
   // ============ METHOD NAVIGASI ============
-  void _navigateToTambahLaporan(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const TambahlaporanPage()),
-    );
-  }
+  // void _navigateToTambahLaporan(BuildContext context) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (_) => const TambahlaporanPage()),
+  //   );
+  // }
 
-  void _navigateToRiwayat(BuildContext context) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(builder: (_) => const RiwayatPage()),
-    );
-  }
+  // void _navigateToRiwayat(BuildContext context) {
+  //   Navigator.push(
+  //     context,
+  //     MaterialPageRoute(builder: (_) => const RiwayatPage()),
+  //   );
+  // }
 }
 
 // ============ MODEL CLASS ============
