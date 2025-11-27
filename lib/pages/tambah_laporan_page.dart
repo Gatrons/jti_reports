@@ -1,10 +1,12 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:jti_reports/features/auth/services/auth_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'lokasi_page.dart'; // Pastikan file ini ada di folder pages
 
 class TambahlaporanPage extends StatefulWidget {
@@ -238,6 +240,8 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
             : null,
         'tingkat_keparahan': _selectedSeverity,
         'media_paths': mediaPaths,
+        'status': 'Diajukan',
+        'user_id': FirebaseAuth.instance.currentUser!.uid,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
