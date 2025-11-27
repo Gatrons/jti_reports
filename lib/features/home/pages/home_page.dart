@@ -5,6 +5,7 @@ import 'package:jti_reports/features/lapor/pages/tambah_laporan_page.dart';
 
 import '../../../core/widgets/appbar/main_app_bar.dart';
 import '../../../core/widgets/drawer/main_drawer.dart';
+import 'package:jti_reports/widgets/reports_list.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -147,65 +148,11 @@ class HomePage extends StatelessWidget {
   }
 
   Widget _buildDaftarLaporan(BuildContext context) {
-    final List<LaporanModel> daftarLaporan = [
-      LaporanModel(
-        judul: "Kerusakan Toilet",
-        tanggal: "10 November 2025",
-        status: "Diajukan",
-        warnaStatus: Colors.redAccent,
-        ikon: Icons.report,
-      ),
-      LaporanModel(
-        judul: "Lampu Mati",
-        tanggal: "12 November 2025",
-        status: "Diproses",
-        warnaStatus: Colors.orangeAccent,
-        ikon: Icons.report,
-      ),
-      LaporanModel(
-        judul: "AC Tidak Dingin",
-        tanggal: "14 November 2025",
-        status: "Selesai",
-        warnaStatus: Colors.green,
-        ikon: Icons.report,
-      ),
-    ];
-
-    return Column(
-      children: daftarLaporan
-          .map((laporan) => _buildCardLaporan(context, laporan))
-          .toList(),
-    );
-  }
-
-  Widget _buildCardLaporan(BuildContext context, LaporanModel laporan) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: Colors.deepPurple.shade50,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.deepPurple.shade200.withOpacity(0.3),
-            blurRadius: 6,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: ListTile(
-        onTap: () => _navigateToDetailLaporan(context, laporan),
-        leading: CircleAvatar(
-          radius: 26,
-          backgroundColor: laporan.warnaStatus.withOpacity(0.2),
-          child: Icon(laporan.ikon, color: laporan.warnaStatus, size: 28),
-        ),
-        title: Text(
-          laporan.judul,
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ),
-        subtitle: Text(laporan.tanggal),
-        trailing: _buildBadgeStatus(laporan),
-      ),
+    return ReportsList(
+      clientSort: true,
+      onCardTap: (doc) {
+        navigateToDetailLaporan(context, doc);
+      },
     );
   }
 
@@ -238,20 +185,6 @@ class HomePage extends StatelessWidget {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const RiwayatPage()),
-    );
-  }
-
-  void _navigateToDetailLaporan(BuildContext context, LaporanModel laporan) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => DetailLaporanPage(
-          title: laporan.judul,
-          date: laporan.tanggal,
-          status: laporan.status,
-          statusColor: laporan.warnaStatus,
-        ),
-      ),
     );
   }
 }

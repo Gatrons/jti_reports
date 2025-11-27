@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 // Import halaman auth
 import 'package:jti_reports/features/auth/pages/login_page.dart';
@@ -16,6 +17,7 @@ import 'features/lapor/pages/tambah_laporan_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  initializeDateFormatting('id_ID', null).then((_) {});
   await Firebase.initializeApp();
   runApp(const MyApp());
 }
