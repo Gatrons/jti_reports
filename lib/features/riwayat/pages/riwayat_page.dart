@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../../core/widgets/appbar/main_app_bar.dart';
+import '../../../core/widgets/drawer/main_drawer.dart';
+import 'detail_laporan_page.dart';
 import 'package:jti_reports/widgets/reports_list.dart';
 
 class RiwayatPage extends StatelessWidget {

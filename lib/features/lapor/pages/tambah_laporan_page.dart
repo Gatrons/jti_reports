@@ -1,6 +1,8 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import '../../../core/widgets/appbar/main_app_bar.dart';
+import '../../../core/widgets/drawer/main_drawer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -257,20 +259,8 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor:
-          Colors.white, // Background putih bersih seperti di gambar
-      appBar: AppBar(
-        title: const Text(
-          'Pengajuan Laporan',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.deepPurple,
-        centerTitle: true,
-        elevation: 0,
-        automaticallyImplyLeading:
-            false, // Hilangkan tombol back default karena di tab utama
-      ),
-      // Tambahkan padding bawah agar tidak tertutup navbar
+      drawer: const MainDrawer(),
+      appBar: const MainAppBar(title: 'Lapor Fasilitas'),
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         child: Column(

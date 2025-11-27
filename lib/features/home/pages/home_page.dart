@@ -1,28 +1,36 @@
 import 'package:flutter/material.dart';
+import 'package:jti_reports/features/riwayat/pages/detail_laporan_page.dart';
+import 'package:jti_reports/features/riwayat/pages/riwayat_page.dart';
+import 'package:jti_reports/features/lapor/pages/tambah_laporan_page.dart';
+
+import '../../../core/widgets/appbar/main_app_bar.dart';
+import '../../../core/widgets/drawer/main_drawer.dart';
 import 'package:jti_reports/widgets/reports_list.dart';
-import 'package:jti_reports/pages/riwayat_page.dart';
-import 'package:jti_reports/pages/tambah_laporan_page.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(appBar: _buildAppBar(), body: _buildBody(context));
+    return Scaffold(
+      drawer: const MainDrawer(),
+      appBar: const MainAppBar(title: 'Beranda'),
+      body: _buildBody(context),
+    );
   }
 
   // ============ METHOD BUILD WIDGET ============
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: const Text(
-        'Beranda',
-        style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-      ),
-      centerTitle: true,
-      backgroundColor: Colors.deepPurple,
-      elevation: 4,
-    );
-  }
+  // AppBar _buildAppBar() {
+  //   return AppBar(
+  //     title: const Text(
+  //       'Beranda',
+  //       style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+  //     ),
+  //     centerTitle: true,
+  //     backgroundColor: Colors.deepPurple,
+  //     elevation: 4,
+  //   );
+  // }
 
   Widget _buildBody(BuildContext context) {
     return Padding(

@@ -12,8 +12,8 @@ import 'package:jti_reports/features/home/pages/home_page.dart';
 
 // Import halaman lainnya
 import 'package:jti_reports/features/onboarding/pages/onboarding_page.dart';
-import 'pages/riwayat_page.dart';
-import 'pages/tambah_laporan_page.dart';
+import 'features/riwayat/pages/riwayat_page.dart';
+import 'features/lapor/pages/tambah_laporan_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,7 +37,7 @@ class MyApp extends StatelessWidget {
       ),
       home: const AuthWrapper(), // Gunakan AuthWrapper untuk handle auth state
       routes: {
-        // '/onboarding': (context) => const OnboardingPage(),
+        '/onboarding': (context) => const OnboardingPage(),
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/email-verification': (context) => const EmailVerificationPage(),
@@ -157,19 +157,19 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBody: true,
-      appBar: AppBar(
-        title: const Text('JTI Reports'),
-        backgroundColor: Colors.deepPurple,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: _showLogoutDialog,
-            tooltip: 'Logout',
-          ),
-        ],
-      ),
+      // appBar: AppBar(
+      //   title: const Text('JTI Reports'),
+      //   backgroundColor: Colors.deepPurple,
+      //   foregroundColor: Colors.white,
+      //   elevation: 0,
+      //   actions: [
+      //     IconButton(
+      //       icon: const Icon(Icons.logout),
+      //       onPressed: _showLogoutDialog,
+      //       tooltip: 'Logout',
+      //     ),
+      //   ],
+      // ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Colors.transparent,
