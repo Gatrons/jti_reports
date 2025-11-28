@@ -33,6 +33,7 @@ class DetailLaporanPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
         title: Text(
           title,
           style: const TextStyle(

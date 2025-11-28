@@ -11,7 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'lokasi_page.dart'; // Pastikan file ini ada di folder pages
 
 class TambahlaporanPage extends StatefulWidget {
-  const TambahlaporanPage({super.key});
+  const TambahlaporanPage({super.key, required void Function(int index) onTabChange});
 
   @override
   State<TambahlaporanPage> createState() => _TambahlaporanPageState();

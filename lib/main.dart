@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/email-verification': (context) => const EmailVerificationPage(),
-        '/home': (context) => const HomePage(),
+        // '/home': (context) => const HomePage(),
       },
     );
   }
@@ -147,29 +147,21 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   int _selectedIndex = 1;
 
-  final List<Widget> _pages = const [
-    RiwayatPage(), // Index 0: Kiri
-    HomePage(), // Index 1: Tengah (Default)
-    TambahlaporanPage(), // Index 2: Kanan
-  ];
+  void _changeTab(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _pages = [
+      RiwayatPage(onTabChange: _changeTab),
+      HomePage(onTabChange: _changeTab),
+      TambahlaporanPage(onTabChange: _changeTab),
+    ];
     return Scaffold(
       extendBody: true,
-      // appBar: AppBar(
-      //   title: const Text('JTI Reports'),
-      //   backgroundColor: Colors.deepPurple,
-      //   foregroundColor: Colors.white,
-      //   elevation: 0,
-      //   actions: [
-      //     IconButton(
-      //       icon: const Icon(Icons.logout),
-      //       onPressed: _showLogoutDialog,
-      //       tooltip: 'Logout',
-      //     ),
-      //   ],
-      // ),
       body: _pages[_selectedIndex],
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Colors.transparent,
@@ -183,52 +175,8 @@ class _MainPageState extends State<MainPage> {
           Icon(Icons.home, size: 35, color: Colors.white),
           Icon(Icons.add_circle_outline, size: 30, color: Colors.white),
         ],
-        onTap: (index) {
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
+        onTap: (index) => _changeTab(index),
       ),
     );
-  }
-
-  void _showLogoutDialog() {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Konfirmasi Logout'),
-          content: const Text('Apakah Anda yakin ingin logout?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Batal'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                _logout();
-              },
-              child: const Text('Logout', style: TextStyle(color: Colors.red)),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Future<void> _logout() async {
-    try {
-      await FirebaseAuth.instance.signOut();
-      // Navigasi ke login page setelah logout
-      Navigator.pushReplacementNamed(context, '/login');
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error saat logout: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
   }
 }
