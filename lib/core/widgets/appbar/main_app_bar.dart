@@ -9,7 +9,7 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      backgroundColor: Colors.deepPurple,
+      backgroundColor: Colors.blue[800],
       elevation: 4,
       centerTitle: true,
 

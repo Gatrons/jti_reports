@@ -126,9 +126,9 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
           height: 80,
           margin: const EdgeInsets.only(right: 8),
           decoration: BoxDecoration(
-            color: Colors.deepPurple.shade50,
+            color: Colors.grey[100],
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.deepPurple.shade100),
+            border: Border.all(color: Colors.grey),
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(10),
@@ -261,18 +261,19 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
     return Scaffold(
       drawer: const MainDrawer(),
       appBar: const MainAppBar(title: 'Lapor Fasilitas'),
+      backgroundColor: Colors.indigo[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Judul Besar
-            const Text(
+            Text(
               "Detail Laporan",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Colors.deepPurple,
+                color: Colors.blue[800],
               ),
             ),
             const SizedBox(height: 20),
@@ -316,9 +317,9 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.deepPurple.shade50,
+                color: Colors.grey[100],                
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.transparent),
+                border: Border.all(color: Colors.grey),
               ),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
@@ -328,7 +329,7 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                     children: [
                       Icon(
                         Icons.warning_amber_rounded,
-                        color: Colors.deepPurple,
+                        color: Colors.blue[800],
                         size: 22,
                       ),
                       const SizedBox(width: 12),
@@ -338,16 +339,16 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                       ),
                     ],
                   ),
-                  icon: const Icon(
+                  icon: Icon(
                     Icons.arrow_drop_down,
-                    color: Colors.deepPurple,
+                    color: Colors.blue[800],
                   ),
                   items: _severityOptions.map((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
                       child: Text(
                         value,
-                        style: const TextStyle(color: Colors.deepPurple),
+                        style: TextStyle(color: Colors.blue[800]),
                       ),
                     );
                   }).toList(),
@@ -362,9 +363,9 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.deepPurple.shade50,
+                color: Colors.grey[100],
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.deepPurple.shade100),
+                border: Border.all(color: Colors.grey),
               ),
               child: Column(
                 children: [
@@ -395,13 +396,13 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                                       height: 80,
                                       margin: const EdgeInsets.only(right: 8),
                                       decoration: BoxDecoration(
-                                        color: Colors.deepPurple.shade100,
+                                        color: Colors.grey[100],
                                         borderRadius: BorderRadius.circular(10),
                                       ),
                                       child: const Center(
                                         child: Icon(
                                           Icons.add,
-                                          color: Colors.white,
+                                          color: Colors.grey,
                                         ),
                                       ),
                                     ),
@@ -415,13 +416,13 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                           Icon(
                             Icons.camera_alt_outlined,
                             size: 50,
-                            color: Colors.deepPurple.shade300,
+                            color: Colors.blue[800],
                           ),
                           const SizedBox(height: 10),
-                          const Text(
+                          Text(
                             "Unggah atau Pilih Foto/Video (maks 3)",
                             style: TextStyle(
-                              color: Colors.deepPurple,
+                              color: Colors.blue[800],
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -452,7 +453,7 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                   });
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.deepPurple,
+                  backgroundColor: Colors.blue[800],
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -481,8 +482,8 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
       padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
       child: Text(
         text,
-        style: const TextStyle(
-          color: Colors.deepPurple,
+        style: TextStyle(
+          color: Colors.blue[800],
           fontWeight: FontWeight.bold,
           fontSize: 15,
         ),
@@ -498,8 +499,9 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
   }) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.deepPurple.shade50, // Warna background input field
+        color: Colors.grey[100], // Warna background input field
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey),
       ),
       child: TextField(
         controller: controller,
@@ -507,7 +509,7 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
-          prefixIcon: Icon(icon, color: Colors.deepPurple, size: 22),
+          prefixIcon: Icon(icon, color: Colors.blue[800], size: 22),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             vertical: 15,

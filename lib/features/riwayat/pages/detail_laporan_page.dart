@@ -53,10 +53,11 @@ class DetailLaporanPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.blue[800],
         centerTitle: true,
       ),
 
+      backgroundColor: Colors.indigo[50],
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
@@ -181,8 +182,7 @@ class DetailLaporanPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child:
-                OutlinedButton.icon(
+                child: OutlinedButton.icon(
                   onPressed: docId == null
                       ? null
                       : () async {
@@ -203,10 +203,13 @@ class DetailLaporanPage extends StatelessWidget {
                             Navigator.of(context).pop();
                           }
                         },
-                  icon: const Icon(Icons.edit),
-                  label: const Text('Update'),
+                  icon: const Icon(Icons.edit, color: Colors.blue),
+                  label: const Text(
+                    'Update',
+                    style: TextStyle(color: Colors.blue),
+                  ),
                   style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: Colors.deepPurple),
+                    side: const BorderSide(color: Colors.blue),
                   ),
                 ),
               ),
@@ -239,7 +242,7 @@ class DetailLaporanPage extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 14),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Colors.grey[100],
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
@@ -265,7 +268,7 @@ class DetailLaporanPage extends StatelessWidget {
       ),
     );
   }
-  
+
   void _openMedia(BuildContext context, String path, bool isVideo) {
     Navigator.push(
       context,
@@ -282,10 +285,18 @@ class DetailLaporanPage extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text('Hapus Laporan'),
-          content: const Text('Anda yakin ingin menghapus laporan ini? Aksi ini tidak dapat dibatalkan.'),
+          content: const Text(
+            'Anda yakin ingin menghapus laporan ini? Aksi ini tidak dapat dibatalkan.',
+          ),
           actions: [
-            TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Batal')),
-            TextButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Hapus', style: TextStyle(color: Colors.red))),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: const Text('Hapus', style: TextStyle(color: Colors.red)),
+            ),
           ],
         );
       },
@@ -299,11 +310,18 @@ class DetailLaporanPage extends StatelessWidget {
   Future<void> _deleteReport(BuildContext context) async {
     if (docId == null) return;
     try {
-      await FirebaseFirestore.instance.collection('reports').doc(docId).delete();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Laporan berhasil dihapus')));
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(docId)
+          .delete();
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Laporan berhasil dihapus')));
       Navigator.of(context).pop();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal menghapus laporan: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal menghapus laporan: $e')));
     }
   }
 }

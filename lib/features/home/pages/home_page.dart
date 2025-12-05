@@ -17,6 +17,7 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       drawer: const MainDrawer(),
       appBar: const MainAppBar(title: 'Beranda'),
+      backgroundColor: Colors.indigo[50],
       body: _buildBody(context),
     );
   }
@@ -46,7 +47,7 @@ class HomePage extends StatelessWidget {
           style: TextStyle(
             fontSize: 22,
             fontWeight: FontWeight.bold,
-            color: Colors.deepPurple,
+            color: Colors.blue[800],
           ),
         ),
         const SizedBox(height: 8),
@@ -63,11 +64,11 @@ class HomePage extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.deepPurple.shade50,
+        color: Colors.grey[50],
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.deepPurple.shade200.withOpacity(0.3),
+            color: Colors.white.withOpacity(0.3),
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
@@ -75,14 +76,14 @@ class HomePage extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Icon(Icons.assignment, color: Colors.deepPurple, size: 40),
+          Icon(Icons.assignment, color: Colors.blue[800], size: 40),
           const SizedBox(height: 10),
           Text(
             'Ingin melaporkan kerusakan?',
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.deepPurple,
+              color: Colors.blue[800],
             ),
           ),
           const SizedBox(height: 10),
@@ -90,7 +91,7 @@ class HomePage extends StatelessWidget {
           ElevatedButton(
             onPressed: () => onTabChange(2),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.deepPurple,
+              backgroundColor: Colors.blue[800],
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(16),
@@ -109,7 +110,7 @@ class HomePage extends StatelessWidget {
             onPressed: () => onTabChange(0),
             child: Text(
               'Lihat Riwayat Pelaporan',
-              style: TextStyle(color: Colors.deepPurple),
+              style: TextStyle(color: Colors.blue[800]),
             ),
           ),
         ],
@@ -121,7 +122,7 @@ class HomePage extends StatelessWidget {
   //   return ElevatedButton(
   //     onPressed: () => _navigateToTambahLaporan(context),
   //     style: ElevatedButton.styleFrom(
-  //       backgroundColor: Colors.deepPurple,
+  //       backgroundColor: Colors.blue,
   //       padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 50),
   //       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
   //     ),
@@ -137,7 +138,7 @@ class HomePage extends StatelessWidget {
   //     onPressed: () => _navigateToRiwayat(context),
   //     child: Text(
   //       'Lihat Riwayat Pelaporan',
-  //       style: TextStyle(color: Colors.deepPurple),
+  //       style: TextStyle(color: Colors.blue),
   //     ),
   //   );
   // }
@@ -151,7 +152,7 @@ class HomePage extends StatelessWidget {
           style: TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.bold,
-            color: Colors.deepPurple,
+            color: Colors.blue[800],
           ),
         ),
         const SizedBox(height: 10),

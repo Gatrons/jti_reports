@@ -41,14 +41,14 @@ class MainDrawer extends StatelessWidget {
         padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
-            decoration: const BoxDecoration(color: Colors.deepPurple),
+            decoration: BoxDecoration(color: Colors.blue[800]),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: const [
+              children: [
                 CircleAvatar(
                   radius: 30,
                   backgroundColor: Colors.white,
-                  child: Icon(Icons.person, size: 35, color: Colors.deepPurple),
+                  child: Icon(Icons.person, size: 35, color: Colors.blue[800]),
                 ),
                 SizedBox(height: 10),
                 Text(

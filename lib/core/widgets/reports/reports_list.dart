@@ -84,11 +84,11 @@ Widget buildReportCard(BuildContext context, QueryDocumentSnapshot doc,
   return Container(
     margin: const EdgeInsets.only(bottom: 14),
     decoration: BoxDecoration(
-      color: Colors.deepPurple.shade50,
+      color: Colors.grey[100],
       borderRadius: BorderRadius.circular(16),
       boxShadow: [
         BoxShadow(
-          color: Colors.deepPurple.shade200.withOpacity(0.3),
+          color: Colors.indigo.shade200.withOpacity(0.3),
           blurRadius: 6,
           offset: const Offset(0, 3),
         ),

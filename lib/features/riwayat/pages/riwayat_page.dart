@@ -11,6 +11,7 @@ class RiwayatPage extends StatelessWidget {
     return Scaffold(
       drawer: const MainDrawer(),
       appBar: const MainAppBar(title: 'Riwayat'),
+      backgroundColor: Colors.indigo[50],
       body: _buildBody(context),
     );
   }
