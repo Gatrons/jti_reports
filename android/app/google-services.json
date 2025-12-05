@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "102324311528",
+    "project_id": "pbl-laporjti",
+    "storage_bucket": "pbl-laporjti.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:102324311528:android:0ff5f78fbfdc284b6b005d",
+        "android_client_info": {
+          "package_name": "com.example.jti_reports"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBvpLfGo9f1wTTKgjcyfdc2UHosaZyCxkY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
