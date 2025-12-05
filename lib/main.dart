@@ -12,6 +12,11 @@ import 'package:jti_reports/features/home/pages/home_page.dart';
 
 // Import halaman lainnya
 import 'package:jti_reports/features/onboarding/pages/onboarding_page.dart';
+import 'package:jti_reports/features/profile/pages/profile_page.dart';
+import 'package:jti_reports/features/settings/pages/change_password_page.dart';
+import 'package:jti_reports/features/settings/pages/help_page.dart';
+import 'package:jti_reports/features/settings/pages/privacy_policy_page.dart';
+import 'package:jti_reports/features/settings/pages/settings_page.dart';
 import 'features/riwayat/pages/riwayat_page.dart';
 import 'features/lapor/pages/tambah_laporan_page.dart';
 
@@ -42,6 +47,11 @@ class MyApp extends StatelessWidget {
         '/register': (context) => const RegisterPage(),
         '/email-verification': (context) => const EmailVerificationPage(),
         // '/home': (context) => const HomePage(),
+        '/profile': (context) => const ProfilePage(),
+        '/settings': (context) => const SettingsPage(),
+        '/change-password': (context) => const ChangePasswordPage(),
+        '/privacy-policy': (context) => const PrivacyPolicyPage(),
+        '/help': (context) => const HelpPage(),
       },
     );
   }
