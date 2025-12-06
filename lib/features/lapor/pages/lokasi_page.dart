@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 // Model data lokasi
 class LokasiData {
@@ -23,40 +24,86 @@ class LokasiPage extends StatefulWidget {
 }
 
 class _PilihLokasiPageState extends State<LokasiPage> {
+  // Channel komunikasi Flutter <-> Android (osmdroid)
+  static const MethodChannel _osmChannel =
+      MethodChannel('com.example.jti_reports/osm_location');
+
   final TextEditingController _patokanController = TextEditingController();
 
-  // Variable state untuk simulasi
-  bool _isLoading = true;
-  String _statusGps = "Sedang mencari satelit GPS...";
+  bool _isLoading = false;
+  String _statusGps = "Belum ada lokasi yang dipilih.";
   double _lat = 0.0;
   double _long = 0.0;
 
   @override
-  void initState() {
-    super.initState();
-    _simulasiAmbilGPS();
+  void dispose() {
+    _patokanController.dispose();
+    super.dispose();
   }
 
-  // Fungsi Dummy untuk simulasi delay GPS
-  Future<void> _simulasiAmbilGPS() async {
-    await Future.delayed(const Duration(seconds: 2)); // Pura-pura loading 2 detik
-    if (mounted) {
+  /// Buka MapActivity (OSM) di Android native dan ambil koordinat yang dipilih
+  Future<void> _bukaPetaOsmDanAmbilLokasi() async {
+    setState(() {
+      _isLoading = true;
+      _statusGps = "Membuka peta OSM dan mencari lokasi...";
+    });
+
+    try {
+      // Panggil method native: pickLocationOnMap
+      final result =
+          await _osmChannel.invokeMethod<Map<dynamic, dynamic>>('pickLocationOnMap');
+
+      if (!mounted) return;
+
+      if (result != null &&
+          result['lat'] != null &&
+          result['lng'] != null) {
+        final double lat = (result['lat'] as num).toDouble();
+        final double lng = (result['lng'] as num).toDouble();
+
+        setState(() {
+          _lat = lat;
+          _long = lng;
+          _statusGps = "Lokasi Terkunci (diambil dari peta OSM)";
+          _isLoading = false;
+        });
+      } else {
+        // User mungkin keluar dari peta tanpa memilih lokasi
+        setState(() {
+          _statusGps = "Lokasi tidak jadi dipilih.";
+          _isLoading = false;
+        });
+      }
+    } on PlatformException catch (e) {
+      if (!mounted) return;
       setState(() {
-        _lat = -7.9419; // Koordinat contoh (JTI Polinema)
-        _long = 112.6161;
-        _statusGps = "Lokasi Terkunci (Akurasi Tinggi)";
+        _statusGps = "Gagal mengambil lokasi dari OSM: ${e.message}";
+        _isLoading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _statusGps = "Terjadi kesalahan saat mengambil lokasi.";
         _isLoading = false;
       });
     }
   }
 
   void _simpanLokasi() {
-    if (_lat == 0.0) return;
+    // Pastikan sudah ada koordinat valid
+    if (_lat == 0.0 && _long == 0.0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Silakan pilih lokasi terlebih dahulu.")),
+      );
+      return;
+    }
 
     final data = LokasiData(
       latitude: _lat,
       longitude: _long,
-      namaLokasi: "Gedung Sipil Lt. 6 (Dummy GPS)", // Nama lokasi dummy
+      // Untuk sekarang, namaLokasi bisa diset sementara.
+      // Kalau nanti di Android kamu kirim juga nama/patokannya, tinggal diganti.
+      namaLokasi: "Lokasi dipilih via peta OSM",
       patokan: _patokanController.text,
     );
 
@@ -65,9 +112,17 @@ class _PilihLokasiPageState extends State<LokasiPage> {
 
   @override
   Widget build(BuildContext context) {
+    final bool sudahAdaLokasi = _lat != 0.0 || _long != 0.0;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Pilih Lokasi Fasilitas", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          "Pilih Lokasi Fasilitas",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         backgroundColor: Colors.deepPurple,
         iconTheme: const IconThemeData(color: Colors.white),
         centerTitle: true,
@@ -77,7 +132,7 @@ class _PilihLokasiPageState extends State<LokasiPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Container Peta Dummy
+            // Container "peta" yang sekarang terhubung ke OSM via native
             Container(
               height: 200,
               width: double.infinity,
@@ -91,26 +146,75 @@ class _PilihLokasiPageState extends State<LokasiPage> {
                     ? Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const CircularProgressIndicator(color: Colors.deepPurple),
+                          const CircularProgressIndicator(
+                            color: Colors.deepPurple,
+                          ),
                           const SizedBox(height: 10),
-                          Text(_statusGps, style: TextStyle(color: Colors.deepPurple.shade700)),
+                          Text(
+                            _statusGps,
+                            style: TextStyle(color: Colors.deepPurple.shade700),
+                            textAlign: TextAlign.center,
+                          ),
                         ],
                       )
                     : Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.location_on, size: 50, color: Colors.red),
+                          Icon(
+                            sudahAdaLokasi
+                                ? Icons.location_on
+                                : Icons.map_outlined,
+                            size: 50,
+                            color: sudahAdaLokasi ? Colors.red : Colors.deepPurple,
+                          ),
                           const SizedBox(height: 10),
-                          Text(_statusGps, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.deepPurple)),
-                          Text("Lat: $_lat, Long: $_long", style: TextStyle(color: Colors.grey[600])),
+                          Text(
+                            _statusGps,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.deepPurple,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          const SizedBox(height: 4),
+                          if (sudahAdaLokasi)
+                            Text(
+                              "Lat: $_lat, Long: $_long",
+                              style: TextStyle(color: Colors.grey[600]),
+                            )
+                          else
+                            Text(
+                              "Tekan tombol di bawah untuk membuka peta OSM.",
+                              style: TextStyle(color: Colors.grey[600]),
+                              textAlign: TextAlign.center,
+                            ),
                         ],
                       ),
               ),
             ),
+            const SizedBox(height: 12),
+
+            // Tombol untuk membuka peta OSM dan ambil lokasi
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton.icon(
+                onPressed: _isLoading ? null : _bukaPetaOsmDanAmbilLokasi,
+                icon: const Icon(Icons.my_location),
+                label: const Text("Gunakan Lokasi Saat Ini via Peta OSM"),
+              ),
+            ),
+
             const SizedBox(height: 20),
-            
+
             // Input Patokan
-            const Text("Patokan Lokasi", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.deepPurple)),
+            const Text(
+              "Patokan Lokasi",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.deepPurple,
+              ),
+            ),
             const SizedBox(height: 8),
             TextFormField(
               controller: _patokanController,
@@ -124,13 +228,14 @@ class _PilihLokasiPageState extends State<LokasiPage> {
                 ),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: const BorderSide(color: Colors.deepPurple, width: 2),
+                  borderSide:
+                      const BorderSide(color: Colors.deepPurple, width: 2),
                 ),
               ),
               maxLines: 2,
             ),
             const Spacer(),
-            
+
             // Tombol Simpan
             SizedBox(
               width: double.infinity,
@@ -139,9 +244,18 @@ class _PilihLokasiPageState extends State<LokasiPage> {
                 onPressed: _isLoading ? null : _simpanLokasi,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.deepPurple,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                 ),
-                child: const Text("Gunakan Lokasi Ini", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  "Gunakan Lokasi Ini",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
