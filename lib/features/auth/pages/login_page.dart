@@ -6,6 +6,7 @@ import 'package:jti_reports/core/widgets/custom_text_field.dart';
 import 'package:jti_reports/core/widgets/loading_button.dart';
 import 'package:jti_reports/features/auth/services/auth_service.dart';
 import 'package:jti_reports/features/auth/pages/forgot_password_page.dart';
+import 'package:jti_reports/features/home/pages/admin_page.dart';
 import '../../../main.dart';
 import 'register_page.dart';
 
@@ -114,10 +115,19 @@ class _LoginPageState extends State<LoginPage>
 
         _tampilkanSnackbar("Login berhasil!", Colors.green);
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainPage()),
-        );
+        if (userModel.role == 'admin') {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AdminHomePage(onTabChange: (int index) {}),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MainPage()),
+          );
+        }
       }
     } catch (e) {
       setState(() {
@@ -144,10 +154,19 @@ class _LoginPageState extends State<LoginPage>
       if (userModel != null) {
         _tampilkanSnackbar("Login dengan Google berhasil!", Colors.green);
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => const MainPage()),
-        );
+        if (userModel.role == AppConstants.adminRole) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (_) => AdminHomePage(onTabChange: (int index) {}),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const MainPage()),
+          );
+        }
       }
     } catch (e) {
       setState(() {
