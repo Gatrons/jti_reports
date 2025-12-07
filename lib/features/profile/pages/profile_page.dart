@@ -1,8 +1,51 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
-import 'package:jti_reports/features/profile/modal/change_class_modal.dart';
-import 'package:jti_reports/features/profile/modal/change_gender_modal.dart';
-import 'package:jti_reports/features/profile/modal/change_name_modal.dart';
-import 'package:jti_reports/features/profile/modal/change_nim_modal.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+
+import 'package:jti_reports/core/widgets/appbar/main_app_bar.dart';
+import 'package:jti_reports/core/widgets/drawer/main_drawer.dart';
+import 'package:jti_reports/features/auth/services/auth_service.dart';
+import 'package:jti_reports/features/auth/models/user_model.dart';
+
+class FiveManageService {
+  static const String _apiToken = 'YOUR_FIVEMANAGE_API_TOKEN';
+  static const String _baseUrl = 'https://fmapi.net';
+
+  static Future<String> uploadImage(File file) async {
+    final uri = Uri.parse('$_baseUrl/api/v2/image');
+
+    final request = http.MultipartRequest('POST', uri)
+      ..headers['Authorization'] = _apiToken
+      ..files.add(
+        await http.MultipartFile.fromPath(
+          'file',
+          file.path,
+          filename: file.path.split('/').last,
+        ),
+      );
+
+    final streamedResponse = await request.send();
+    final response = await http.Response.fromStream(streamedResponse);
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      throw Exception('Upload gagal: ${response.statusCode} ${response.body}');
+    }
+
+    final Map<String, dynamic> json = jsonDecode(response.body);
+    final data = json['data'] as Map<String, dynamic>?;
+
+    if (data == null || data['url'] == null) {
+      throw Exception(
+        'Response Fivemanage tidak berisi data.url: ${response.body}',
+      );
+    }
+
+    return data['url'] as String;
+  }
+}
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -12,138 +55,220 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  String? selectedGender = "Laki-laki";
+  final AuthService _authService = AuthService();
+  final ImagePicker _picker = ImagePicker();
+
+  UserModel? _user;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  Future<void> _loadUserData() async {
+    try {
+      final uid = _authService.currentUserId;
+      if (uid == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final user = await _authService.getUserData(uid);
+      setState(() {
+        _user = user;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() => _isLoading = false);
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memuat profil: $e')));
+    }
+  }
+
+  Future<void> _updatePhotoProfile() async {
+    try {
+      final pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 75,
+      );
+      if (pickedFile == null) return;
+
+      final file = File(pickedFile.path);
+      final uploadedUrl = await FiveManageService.uploadImage(file);
+
+      final uid = _authService.currentUserId;
+      if (uid == null) throw Exception('User tidak ditemukan');
+
+      await _authService.updateUserProfile(uid, {'photoURL': uploadedUrl});
+
+      setState(() {
+        _user = _user?.copyWith(photoURL: uploadedUrl);
+      });
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Foto profil berhasil diperbarui')),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gagal mengupdate foto profil: $e')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final user = _user;
+
     return Scaffold(
-      backgroundColor: Colors.indigo[50],
-      appBar: AppBar(
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text(
-          "Ubah Profil",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: Colors.blue[800],
-        centerTitle: true,
-      ),
-      body: _buildBody(),
+      drawer: const MainDrawer(),
+      appBar: const MainAppBar(title: 'Profil'),
+      backgroundColor: Colors.grey[50],
+      body: user == null ? _buildNoUser() : _buildProfileContent(user),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildNoUser() {
+    return const Center(child: Text('Data user tidak ditemukan'));
+  }
+
+  Widget _buildProfileContent(UserModel user) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        children: [
+          const SizedBox(height: 16),
+          _buildHeader(user),
+          const SizedBox(height: 24),
+          _buildInfoCard(user),
+          const SizedBox(height: 24),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader(UserModel user) {
+    final photoUrl = user.photoURL;
+
     return Column(
       children: [
-        _buildHeader(),
-        const SizedBox(height: 40),
-        _buildProfileCard(),
-      ],
-    );
-  }
-
-  Widget _buildHeader() {
-    return Container(
-      height: 150,
-      width: double.infinity,
-      color: Colors.blue[600],
-      child: Center(child: _buildAvatar()),
-    );
-  }
-
-  Widget _buildAvatar() {
-    return Stack(
-      alignment: Alignment.bottomRight,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(bottom: 10),
-          padding: const EdgeInsets.all(4),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-          ),
-          child: const CircleAvatar(
-            radius: 45,
-            backgroundColor: Colors.blue,
-            child: Text(
-              "A",
-              style: TextStyle(fontSize: 40, color: Colors.white),
-            ),
-          ),
-        ),
-        Positioned(
-          bottom: 0,
-          right: 8,
+        GestureDetector(
+          onTap: _updatePhotoProfile,
           child: CircleAvatar(
-            radius: 14,
-            backgroundColor: Colors.black87,
-            child: const Icon(Icons.camera_alt, size: 14, color: Colors.white),
+            radius: 48,
+            backgroundColor: Colors.deepPurple.shade100,
+            backgroundImage: (photoUrl != null && photoUrl.isNotEmpty)
+                ? NetworkImage(photoUrl)
+                : null,
+            child: (photoUrl == null || photoUrl.isEmpty)
+                ? const Icon(Icons.person, size: 40, color: Colors.white)
+                : null,
           ),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          user.name,
+          style: TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[800],
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          user.email,
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+        const SizedBox(height: 8),
+        TextButton.icon(
+          onPressed: _updatePhotoProfile,
+          icon: const Icon(Icons.camera_alt_outlined, size: 18),
+          label: const Text('Ubah Foto Profil'),
         ),
       ],
     );
   }
 
-  Widget _buildProfileCard() {
+  Widget _buildInfoCard(UserModel user) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: const [
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black12,
-            blurRadius: 10,
-            offset: Offset(0, 5),
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         children: [
-          _buildItem("Nama", "Anonim", () => ChangeNameModal.show(context)),
-          _divider(),
-
-          _buildItem("NIM", "2341760000", () => ChangeNimModal.show(context)),
-          _divider(),
-
-          _buildItem("Kelas", "SIB3C", () => ChangeClassModal.show(context)),
-          _divider(),
-
-          _buildItem(
-            "Jenis Kelamin",
-            "Laki-laki",
-            () {
-              ChangeGenderModal.show(context, "Laki-laki");
-            },
+          _buildInfoRow('Nama', user.name, Icons.person_outline),
+          const Divider(),
+          _buildInfoRow('Email', user.email, Icons.email_outlined),
+          const Divider(),
+          _buildInfoRow('Role', user.role, Icons.verified_user_outlined),
+          const Divider(),
+          _buildInfoRow(
+            'Verifikasi Email',
+            user.emailVerified ? 'Sudah diverifikasi' : 'Belum diverifikasi',
+            user.emailVerified ? Icons.check_circle : Icons.error_outline,
+            iconColor: user.emailVerified ? Colors.green : Colors.orange,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildItem(String label, String value, VoidCallback onTap) {
-    return ListTile(
-      onTap: onTap,
-      title: Text(label, style: const TextStyle(fontSize: 14)),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
+  Widget _buildInfoRow(
+    String label,
+    String value,
+    IconData icon, {
+    Color? iconColor,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
         children: [
-          Text(
-            value,
-            style: const TextStyle(fontSize: 14, color: Colors.black54),
+          Icon(icon, size: 20, color: iconColor ?? Colors.deepPurple),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-          const SizedBox(width: 6),
-          const Icon(Icons.chevron_right, color: Colors.black45),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
         ],
       ),
-    );
-  }
-
-  Widget _divider() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      height: 1,
-      color: Colors.grey.shade200,
     );
   }
 }
