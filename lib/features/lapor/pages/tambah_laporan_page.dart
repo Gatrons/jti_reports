@@ -193,6 +193,35 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
   }
 
   Future<void> uploadForm() async {
+    // Validasi semua field harus terisi
+    if (_jenisKerusakanController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Jenis kerusakan harus diisi')),
+      );
+      return;
+    }
+
+    if (_lokasiController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lokasi fasilitas harus diisi')),
+      );
+      return;
+    }
+
+    if (_deskripsiController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Deskripsi kerusakan harus diisi')),
+      );
+      return;
+    }
+
+    if (_selectedSeverity == null || _selectedSeverity!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tingkat keparahan harus dipilih')),
+      );
+      return;
+    }
+    
     try {
       // Simpan media ke Supabase Storage
       final supabase = Supabase.instance.client;

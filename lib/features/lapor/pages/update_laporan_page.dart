@@ -225,6 +225,35 @@ class _UpdateLaporanPageState extends State<UpdateLaporanPage> {
   }
 
   Future<void> _submitUpdate() async {
+    // Validasi semua field harus terisi
+    if (_jenisController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Jenis kerusakan harus diisi')),
+      );
+      return;
+    }
+
+    if (_lokasiController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Lokasi fasilitas harus diisi')),
+      );
+      return;
+    }
+
+    if (_deskripsiController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Deskripsi kerusakan harus diisi')),
+      );
+      return;
+    }
+
+    if (_selectedSeverity == null || _selectedSeverity!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Tingkat keparahan harus dipilih')),
+      );
+      return;
+    }
+
     try {
       final supabaseClient = Supabase.instance.client;
       const String bucket = 'laporan-media';
