@@ -41,8 +41,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'JTI Report App',
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue[800]!),
         useMaterial3: true,
       ),
       home: const AuthWrapper(),
@@ -101,7 +101,7 @@ class SplashScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.deepPurple,
+      backgroundColor: Colors.blue[800],
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -114,16 +114,16 @@ class SplashScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.deepPurple.withAlpha(76),
+                    color: Colors.blue[800]!.withOpacity(0.6),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.assignment_outlined,
                 size: 60,
-                color: Colors.deepPurple,
+                color: Colors.blue[800],
               ),
             ),
             const SizedBox(height: 30),

@@ -291,22 +291,22 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                     ),
                   ),
                 ),
-                SizedBox(height: 40),
-                // Loading Indicator
-                const Column(
-                  children: [
-                    Text(
-                      'Memeriksa verifikasi...',
-                      style: TextStyle(fontSize: 14, color: Colors.grey),
-                    ),
-                    SizedBox(height: 8),
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  ],
-                ),
+                // SizedBox(height: 40),
+                // // Loading Indicator
+                // const Column(
+                //   children: [
+                //     Text(
+                //       'Memeriksa verifikasi...',
+                //       style: TextStyle(fontSize: 14, color: Colors.grey),
+                //     ),
+                //     SizedBox(height: 8),
+                //     SizedBox(
+                //       width: 20,
+                //       height: 20,
+                //       child: CircularProgressIndicator(strokeWidth: 2),
+                //     ),
+                //   ],
+                // ),
                 const SizedBox(height: 40),
               ],
             ),
