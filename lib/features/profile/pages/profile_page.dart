@@ -9,7 +9,7 @@ import 'package:jti_reports/features/auth/services/auth_service.dart';
 import 'package:jti_reports/features/auth/models/user_model.dart';
 
 class FiveManageService {
-  static const String _apiToken = 'YOUR_FIVEMANAGE_API_TOKEN';
+  static const String _apiToken = 'iHhRWCTt3kMJvxQ7CM0wrQWcREx1zKrG';
   static const String _baseUrl = 'https://fmapi.net';
 
   static Future<String> uploadImage(File file) async {
