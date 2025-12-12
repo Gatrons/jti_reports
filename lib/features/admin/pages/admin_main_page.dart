@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:jti_reports/features/admin/pages/admin_page.dart';
-import 'package:jti_reports/features/riwayat/pages/riwayat_page.dart';
+import 'package:jti_reports/features/admin/pages/admin_riwayat_page.dart';
 
 class AdminMainPage extends StatefulWidget {
   const AdminMainPage({super.key});
@@ -21,15 +21,15 @@ class _AdminMainPageState extends State<AdminMainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _adminPages = [
-      RiwayatPage(onTabChange: _changeTab),
+    final List<Widget> adminPages = [
+      AdminRiwayatPage(onTabChange: _changeTab),
       AdminHomePage(onTabChange: _changeTab),
-      RiwayatPage(onTabChange: _changeTab),
+      AdminRiwayatPage(onTabChange: _changeTab),
     ];
 
     return Scaffold(
       extendBody: true,
-      body: _adminPages[_selectedIndex],
+      body: adminPages[_selectedIndex],
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Colors.transparent,
         color: Colors.blue[800]!,
