@@ -1,11 +1,120 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:jti_reports/core/widgets/appbar/main_app_bar.dart';
 import 'package:jti_reports/core/widgets/drawer/main_drawer.dart';
 
-class AdminHomePage extends StatelessWidget {
+class AdminHomePage extends StatefulWidget {
   final void Function(int index) onTabChange;
 
   const AdminHomePage({super.key, required this.onTabChange});
+
+  @override
+  State<AdminHomePage> createState() => _AdminHomePageState();
+}
+
+class _AdminHomePageState extends State<AdminHomePage> {
+  DateTime _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
+
+  // ====== Helpers ======
+  String _monthLabel(DateTime m) {
+    return DateFormat('MMMM yyyy', 'id_ID').format(m);
+  }
+
+  DateTime _monthStart(DateTime m) => DateTime(m.year, m.month, 1);
+  DateTime _monthEndExclusive(DateTime m) => DateTime(m.year, m.month + 1, 1);
+
+  DateTime _asDate(dynamic ts) {
+    if (ts is Timestamp) return ts.toDate();
+    if (ts is DateTime) return ts;
+    if (ts is int) return DateTime.fromMillisecondsSinceEpoch(ts);
+    return DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'selesai':
+        return const Color(0xFF388E3C);
+      case 'diproses':
+        return const Color(0xFFF57C00);
+      default:
+        return const Color(0xFFD32F2F);
+    }
+  }
+
+  IconData _statusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'selesai':
+        return Icons.check_circle_outline;
+      case 'diproses':
+        return Icons.hourglass_top;
+      default:
+        return Icons.error_outline;
+    }
+  }
+
+  String _lokasiToDisplay(dynamic lokasiValue) {
+    if (lokasiValue == null) return '-';
+    if (lokasiValue is String)
+      return lokasiValue.trim().isEmpty ? '-' : lokasiValue.trim();
+    if (lokasiValue is Map) {
+      final nama = (lokasiValue['nama_lokasi'] ?? '').toString().trim();
+      final patokan = (lokasiValue['patokan'] ?? '').toString().trim();
+      if (nama.isNotEmpty && patokan.isNotEmpty) return '$nama • $patokan';
+      if (nama.isNotEmpty) return nama;
+      if (patokan.isNotEmpty) return patokan;
+    }
+    return lokasiValue.toString();
+  }
+
+  List<DateTime> _lastNMonths(int n) {
+    final now = DateTime.now();
+    final base = DateTime(now.year, now.month, 1);
+    return List.generate(n, (i) {
+      final d = DateTime(base.year, base.month - i, 1);
+      return d;
+    });
+  }
+
+  Future<void> _pickMonth() async {
+    final months = _lastNMonths(12);
+
+    final picked = await showModalBottomSheet<DateTime>(
+      context: context,
+      showDragHandle: true,
+      builder: (_) {
+        return SafeArea(
+          child: ListView.separated(
+            padding: const EdgeInsets.all(12),
+            itemCount: months.length,
+            separatorBuilder: (_, __) => const Divider(height: 1),
+            itemBuilder: (_, i) {
+              final m = months[i];
+              final isSelected =
+                  m.year == _selectedMonth.year &&
+                  m.month == _selectedMonth.month;
+              return ListTile(
+                title: Text(_monthLabel(m)),
+                trailing: isSelected
+                    ? const Icon(Icons.check, color: Colors.indigo)
+                    : null,
+                onTap: () => Navigator.pop(context, m),
+              );
+            },
+          ),
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() => _selectedMonth = picked);
+    }
+  }
+
+  // ====== Firestore stream (ambil semua, filter di client biar aman dari index) ======
+  Stream<QuerySnapshot<Map<String, dynamic>>> _reportsStream() {
+    return FirebaseFirestore.instance.collection('reports').snapshots();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -13,29 +122,94 @@ class AdminHomePage extends StatelessWidget {
       drawer: const MainDrawer(),
       appBar: const MainAppBar(title: 'Beranda'),
       backgroundColor: Colors.indigo[50],
-      body: _buildBody(context),
-    );
-  }
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+          stream: _reportsStream(),
+          builder: (context, snap) {
+            if (snap.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snap.hasError) {
+              return Center(
+                child: Text(
+                  'Gagal memuat data: ${snap.error}',
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              );
+            }
 
-  // ============ METHOD BUILD WIDGET ============
+            final docs = snap.data?.docs ?? [];
 
-  Widget _buildBody(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: ListView(
-        children: [
-          _buildHeaderWelcome(),
-          const SizedBox(height: 20),
-          _buildStatusPerBulanSection(),
-          const SizedBox(height: 30),
-          _buildStatusPerTanggalSection(context),
-        ],
+            // Filter bulan (client-side)
+            final start = _monthStart(_selectedMonth);
+            final endEx = _monthEndExclusive(_selectedMonth);
+
+            final monthDocs = docs.where((d) {
+              final data = d.data();
+              final dt = _asDate(data['timestamp']);
+              return dt.isAfter(
+                    start.subtract(const Duration(milliseconds: 1)),
+                  ) &&
+                  dt.isBefore(endEx);
+            }).toList();
+
+            // Sort newest
+            monthDocs.sort((a, b) {
+              final ta = _asDate(a.data()['timestamp']);
+              final tb = _asDate(b.data()['timestamp']);
+              return tb.compareTo(ta);
+            });
+
+            // Count per status
+            int diajukan = 0, diproses = 0, selesai = 0;
+            for (final d in monthDocs) {
+              final status = (d.data()['status'] ?? 'Diajukan')
+                  .toString()
+                  .toLowerCase();
+              if (status == 'selesai')
+                selesai++;
+              else if (status == 'diproses')
+                diproses++;
+              else
+                diajukan++;
+            }
+
+            // recent list (3 data)
+            final recent = monthDocs.take(3).toList();
+
+            return ListView(
+              children: [
+                _buildHeaderWelcome(),
+                const SizedBox(height: 20),
+
+                // ===== Status per Bulan (dinamis) =====
+                _buildStatusPerBulanSection(
+                  monthLabel: _monthLabel(_selectedMonth),
+                  onPickMonth: _pickMonth,
+                  diajukan: diajukan,
+                  diproses: diproses,
+                  selesai: selesai,
+                ),
+
+                const SizedBox(height: 30),
+
+                // ===== Status per Tanggal (list dinamis) =====
+                _buildStatusPerTanggalSection(
+                  context,
+                  monthLabel: _monthLabel(_selectedMonth),
+                  recentDocs: recent,
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
   // ============ HEADER ============
-
   Widget _buildHeaderWelcome() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,8 +232,13 @@ class AdminHomePage extends StatelessWidget {
   }
 
   // ============ STATUS PER BULAN ============
-
-  Widget _buildStatusPerBulanSection() {
+  Widget _buildStatusPerBulanSection({
+    required String monthLabel,
+    required VoidCallback onPickMonth,
+    required int diajukan,
+    required int diproses,
+    required int selesai,
+  }) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(16),
@@ -90,17 +269,20 @@ class AdminHomePage extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              _buildMonthChip('November 2025'),
+              GestureDetector(
+                onTap: onPickMonth,
+                child: _buildMonthChip(monthLabel),
+              ),
             ],
           ),
           const SizedBox(height: 16),
-          // 3 kartu ringkasan
+          // 3 kartu ringkasan (dinamis)
           Row(
             children: [
               Expanded(
                 child: _buildSummaryCard(
                   title: 'Diajukan',
-                  count: 10,
+                  count: diajukan,
                   gradientColors: const [Color(0xFFFFCDD2), Color(0xFFF8BBD0)],
                   titleColor: const Color(0xFFD32F2F),
                 ),
@@ -109,7 +291,7 @@ class AdminHomePage extends StatelessWidget {
               Expanded(
                 child: _buildSummaryCard(
                   title: 'Diproses',
-                  count: 1,
+                  count: diproses,
                   gradientColors: const [Color(0xFFFFE0B2), Color(0xFFFFCC80)],
                   titleColor: const Color(0xFFF57C00),
                 ),
@@ -118,7 +300,7 @@ class AdminHomePage extends StatelessWidget {
               Expanded(
                 child: _buildSummaryCard(
                   title: 'Selesai',
-                  count: 3,
+                  count: selesai,
                   gradientColors: const [Color(0xFFC8E6C9), Color(0xFFA5D6A7)],
                   titleColor: const Color(0xFF388E3C),
                 ),
@@ -202,8 +384,11 @@ class AdminHomePage extends StatelessWidget {
   }
 
   // ============ STATUS PER TANGGAL / DAFTAR LAPORAN ============
-
-  Widget _buildStatusPerTanggalSection(BuildContext context) {
+  Widget _buildStatusPerTanggalSection(
+    BuildContext context, {
+    required String monthLabel,
+    required List<QueryDocumentSnapshot<Map<String, dynamic>>> recentDocs,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -220,7 +405,7 @@ class AdminHomePage extends StatelessWidget {
               ),
             ),
             TextButton(
-              onPressed: () => onTabChange(0), // ke tab Riwayat admin
+              onPressed: () => widget.onTabChange(0), // ke tab Riwayat admin
               child: const Text(
                 'Lihat semua',
                 style: TextStyle(color: Colors.indigo),
@@ -228,49 +413,45 @@ class AdminHomePage extends StatelessWidget {
             ),
           ],
         ),
+        const SizedBox(height: 6),
+        Text(
+          'Periode: $monthLabel',
+          style: TextStyle(color: Colors.grey[700], fontSize: 12),
+        ),
         const SizedBox(height: 10),
-        _buildDaftarLaporanAdmin(context),
+        if (recentDocs.isEmpty)
+          Text(
+            'Belum ada laporan di bulan ini.',
+            style: TextStyle(color: Colors.grey[700]),
+          )
+        else
+          Column(
+            children: [
+              for (final doc in recentDocs) ...[
+                _buildReportCardFromDoc(doc),
+                const SizedBox(height: 12),
+              ],
+            ],
+          ),
       ],
     );
   }
 
-  Widget _buildDaftarLaporanAdmin(BuildContext context) {
-    // Dummy data – nanti diganti Firestore
-    final laporanList = [
-      _AdminReport(
-        judul: 'Kerusakan Proyektor Ruang 101',
-        tanggal: '10 November 2025',
-        status: 'Diajukan',
-        color: const Color(0xFFD32F2F),
-        icon: Icons.error_outline,
-      ),
-      _AdminReport(
-        judul: 'Kursi Rusak di Lab Komputer',
-        tanggal: '11 November 2025',
-        status: 'Diproses',
-        color: const Color(0xFFF57C00),
-        icon: Icons.hourglass_top,
-      ),
-      _AdminReport(
-        judul: 'Lampu Padam di Koridor',
-        tanggal: '12 November 2025',
-        status: 'Selesai',
-        color: const Color(0xFF388E3C),
-        icon: Icons.check_circle_outline,
-      ),
-    ];
+  Widget _buildReportCardFromDoc(
+    QueryDocumentSnapshot<Map<String, dynamic>> doc,
+  ) {
+    final data = doc.data();
+    final judul = (data['jenis_kerusakan'] ?? 'Laporan').toString();
+    final status = (data['status'] ?? 'Diajukan').toString();
+    final warna = _statusColor(status);
+    final icon = _statusIcon(status);
 
-    return Column(
-      children: [
-        for (final laporan in laporanList) ...[
-          _buildReportCard(laporan),
-          const SizedBox(height: 12),
-        ],
-      ],
-    );
-  }
+    final dt = _asDate(data['timestamp']);
+    final tanggal = DateFormat('d MMM yyyy', 'id_ID').format(dt);
 
-  Widget _buildReportCard(_AdminReport laporan) {
+    // bonus: tampilkan lokasi singkat (optional)
+    final lokasi = _lokasiToDisplay(data['lokasi']);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
@@ -279,24 +460,22 @@ class AdminHomePage extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Icon status
           Container(
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: laporan.color.withOpacity(0.15),
+              color: warna.withOpacity(0.15),
               shape: BoxShape.circle,
             ),
-            child: Icon(laporan.icon, color: laporan.color, size: 22),
+            child: Icon(icon, color: warna, size: 22),
           ),
           const SizedBox(width: 14),
-          // Judul & tanggal
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  laporan.judul,
+                  judul,
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -305,25 +484,26 @@ class AdminHomePage extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  laporan.tanggal,
+                  '$tanggal • $lokasi',
                   style: const TextStyle(fontSize: 12, color: Colors.grey),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ],
             ),
           ),
-          // Badge status
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: laporan.color.withOpacity(0.15),
+              color: warna.withOpacity(0.15),
               borderRadius: BorderRadius.circular(999),
             ),
             child: Text(
-              laporan.status,
+              status,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
-                color: laporan.color,
+                color: warna,
               ),
             ),
           ),
@@ -331,22 +511,4 @@ class AdminHomePage extends StatelessWidget {
       ),
     );
   }
-}
-
-// ============ MODEL CLASS KECIL ============
-
-class _AdminReport {
-  final String judul;
-  final String tanggal;
-  final String status;
-  final Color color;
-  final IconData icon;
-
-  _AdminReport({
-    required this.judul,
-    required this.tanggal,
-    required this.status,
-    required this.color,
-    required this.icon,
-  });
 }
