@@ -5,7 +5,7 @@ import 'package:jti_reports/core/utils/error_handler.dart';
 import 'package:jti_reports/core/widgets/custom_text_field.dart';
 import 'package:jti_reports/core/widgets/loading_button.dart';
 import 'package:jti_reports/features/auth/services/auth_service.dart';
-import 'package:jti_reports/features/home/pages/admin_page.dart';
+import 'package:jti_reports/features/admin/pages/admin_page.dart';
 import 'package:jti_reports/main.dart';
 import '../models/user_model.dart';
 import '../pages/email_verification_page.dart';

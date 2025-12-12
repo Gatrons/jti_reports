@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
 
-import 'package:jti_reports/core/widgets/appbar/main_app_bar.dart';
-import 'package:jti_reports/core/widgets/drawer/main_drawer.dart';
 import 'package:jti_reports/features/auth/services/auth_service.dart';
 import 'package:jti_reports/features/auth/models/user_model.dart';
 
@@ -130,8 +128,15 @@ class _ProfilePageState extends State<ProfilePage> {
     final user = _user;
 
     return Scaffold(
-      drawer: const MainDrawer(),
-      appBar: const MainAppBar(title: 'Profil'),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: const Text(
+          "Profil",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Colors.blue[800],
+        centerTitle: true,
+      ),
       backgroundColor: Colors.grey[50],
       body: user == null ? _buildNoUser() : _buildProfileContent(user),
     );

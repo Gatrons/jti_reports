@@ -1,8 +1,10 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:jti_reports/features/admin/pages/admin_main_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
 
 // Import halaman auth
@@ -87,10 +89,44 @@ class AuthWrapper extends StatelessWidget {
           return const EmailVerificationPage();
         }
 
-        // User sudah login dan email terverifikasi, arahkan ke main page
-        return const MainPage();
+        // User sudah login dan email terverifikasi
+        return FutureBuilder<Map<String, dynamic>?>(
+          future: _getUserRoleFromFirestore(user.uid),
+          builder: (context, roleSnapshot) {
+            if (roleSnapshot.connectionState == ConnectionState.waiting) {
+              return const SplashScreen();
+            }
+
+            final userData = roleSnapshot.data;
+            final role = userData?['role'] ?? 'user';
+
+            if (role == 'admin') {
+              return const AdminMainPage();
+            } else {
+              return const MainPage();
+            }
+          },
+        );
       },
     );
+  }
+
+  Future<Map<String, dynamic>?> _getUserRoleFromFirestore(String uid) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+
+      if (doc.exists) {
+        return doc.data();
+      }
+
+      return {'role': 'user'};
+    } catch (e) {
+      print('Error getting user role from Firestore: $e');
+      return {'role': 'user'};
+    }
   }
 }
 
