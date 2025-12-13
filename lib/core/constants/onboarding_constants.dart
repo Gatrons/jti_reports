@@ -7,15 +7,11 @@ class OnboardingConstants {
   static const String teksTombolMulai = 'Mulai Lapor';
 
   // Warna
-  static const Color warnaDeepPurple = Color(0xFF67008C);
-  static const Color warnaDarkPurple = Color(0xFF1C0026);
+  static const Color warnaBiruMuda = Color(0xFF618DFF);
+  static const Color warnaDarkBlue = Color(0xFF0046FF);
 
   // Gradient
-  static const List<Color> gradientWarna = [
-    warnaDeepPurple,
-    Colors.purpleAccent,
-    warnaDarkPurple,
-  ];
+  static const List<Color> gradientWarna = [warnaBiruMuda, warnaDarkBlue];
 
   // Durasi
   static const Duration durasiAnimasi = Duration(milliseconds: 600);

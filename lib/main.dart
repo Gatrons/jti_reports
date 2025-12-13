@@ -1,9 +1,12 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:jti_reports/features/admin/pages/admin_main_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase;
+import 'package:jti_reports/core/services/notification_service.dart';
 
 // Import halaman auth
 import 'package:jti_reports/features/auth/pages/login_page.dart';
@@ -24,11 +27,13 @@ import 'features/lapor/pages/tambah_laporan_page.dart';
 const supabaseUrl = 'https://qhugkqivkewxvucylozc.supabase.co';
 const supabaseKey =
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFodWdrcWl2a2V3eHZ1Y3lsb3pjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUwMjA0NzgsImV4cCI6MjA4MDU5NjQ3OH0.PtOd-TDpiShoUU7TKXeEwQI0j4NNtyEAzFINAxcUExk';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  initializeDateFormatting('id_ID', null).then((_) {});
+  await initializeDateFormatting('id_ID', null);
   await Firebase.initializeApp();
   await supabase.Supabase.initialize(url: supabaseUrl, anonKey: supabaseKey);
+
   runApp(const MyApp());
 }
 
@@ -41,8 +46,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'JTI Report App',
       theme: ThemeData(
-        primarySwatch: Colors.deepPurple,
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        primarySwatch: Colors.blue,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue[800]!),
         useMaterial3: true,
       ),
       home: const AuthWrapper(),
@@ -51,7 +56,6 @@ class MyApp extends StatelessWidget {
         '/login': (context) => const LoginPage(),
         '/register': (context) => const RegisterPage(),
         '/email-verification': (context) => const EmailVerificationPage(),
-        // '/home': (context) => const HomePage(),
         '/profile': (context) => const ProfilePage(),
         '/settings': (context) => const SettingsPage(),
         '/change-password': (context) => const ChangePasswordPage(),
@@ -62,7 +66,7 @@ class MyApp extends StatelessWidget {
   }
 }
 
-// Widget untuk handle authentication state
+/// Widget untuk handle authentication state
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
@@ -78,30 +82,85 @@ class AuthWrapper extends StatelessWidget {
         final user = snapshot.data;
 
         if (user == null) {
-          // User belum login, arahkan ke onboarding
           return const OnboardingPage();
         }
 
-        // User sudah login, cek email verification
         if (!user.emailVerified) {
           return const EmailVerificationPage();
         }
 
-        // User sudah login dan email terverifikasi, arahkan ke main page
-        return const MainPage();
+        return FutureBuilder<Map<String, dynamic>?>(
+          future: _getUserRoleFromFirestore(user.uid),
+          builder: (context, roleSnapshot) {
+            if (roleSnapshot.connectionState == ConnectionState.waiting) {
+              return const SplashScreen();
+            }
+
+            final userData = roleSnapshot.data;
+            final role = (userData?['role'] ?? 'user').toString();
+
+            if (role == 'admin') {
+              return const _AdminGate();
+            } else {
+              return const MainPage();
+            }
+          },
+        );
       },
     );
   }
+
+  Future<Map<String, dynamic>?> _getUserRoleFromFirestore(String uid) async {
+    try {
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(uid)
+          .get();
+      if (doc.exists) return doc.data();
+      return {'role': 'user'};
+    } catch (e) {
+      print('Error getting user role from Firestore: $e');
+      return {'role': 'user'};
+    }
+  }
 }
 
-// Splash Screen untuk loading
+/// ✅ Gate khusus admin supaya init notification tidak kepanggil berulang saat build
+class _AdminGate extends StatefulWidget {
+  const _AdminGate();
+
+  @override
+  State<_AdminGate> createState() => _AdminGateState();
+}
+
+class _AdminGateState extends State<_AdminGate> {
+  bool _inited = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_inited) return;
+    _inited = true;
+
+    // 🔔 Init notification (subscribe topic admin, get token, listeners)
+    // Tidak perlu await agar tidak nge-block UI
+    NotificationService.instance.init();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const AdminMainPage();
+  }
+}
+
+/// Splash Screen untuk loading
 class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.deepPurple,
+      backgroundColor: Colors.blue[800],
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -114,16 +173,16 @@ class SplashScreen extends StatelessWidget {
                 borderRadius: BorderRadius.circular(30),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.deepPurple.withAlpha(76),
+                    color: Colors.blue[800]!.withOpacity(0.6),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
                 ],
               ),
-              child: const Icon(
+              child: Icon(
                 Icons.assignment_outlined,
                 size: 60,
-                color: Colors.deepPurple,
+                color: Colors.blue[800],
               ),
             ),
             const SizedBox(height: 30),
@@ -170,14 +229,15 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> _pages = [
+    final List<Widget> pages = [
       RiwayatPage(onTabChange: _changeTab),
       HomePage(onTabChange: _changeTab),
       TambahlaporanPage(onTabChange: _changeTab),
     ];
+
     return Scaffold(
       extendBody: true,
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: CurvedNavigationBar(
         backgroundColor: Colors.transparent,
         color: Colors.blue[800]!,

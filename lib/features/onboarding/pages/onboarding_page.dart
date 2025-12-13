@@ -87,40 +87,19 @@ class _OnboardingPageState extends State<OnboardingPage>
   // ============ METHOD BUILD WIDGET ============
   @override
   Widget build(BuildContext context) {
-    return Theme(
-      data: _buildThemeData(),
-      child: Scaffold(
-        body: Container(
-          decoration: _buildBackgroundDecoration(),
-          child: SafeArea(
-            child: Column(
-              children: [
-                _buildTombolLewati(),
-                _buildAreaKonten(),
-                _buildIndikatorHalaman(),
-                _buildTombolLanjut(),
-              ],
-            ),
+    return Scaffold(
+      body: Container(
+        decoration: _buildBackgroundDecoration(),
+        child: SafeArea(
+          child: Column(
+            children: [
+              _buildTombolLewati(),
+              _buildAreaKonten(),
+              _buildIndikatorHalaman(),
+              _buildTombolLanjut(),
+            ],
           ),
         ),
-      ),
-    );
-  }
-
-  ThemeData _buildThemeData() {
-    return ThemeData(
-      colorScheme: ColorScheme(
-        brightness: Brightness.light,
-        primary: OnboardingConstants.warnaDeepPurple,
-        onPrimary: Colors.white,
-        secondary: Colors.white,
-        onSecondary: Colors.black,
-        onBackground: Colors.white,
-        background: OnboardingConstants.warnaDeepPurple,
-        error: Colors.redAccent,
-        onError: Colors.white,
-        surface: OnboardingConstants.warnaDeepPurple,
-        onSurface: Colors.white,
       ),
     );
   }
@@ -131,7 +110,6 @@ class _OnboardingPageState extends State<OnboardingPage>
         colors: OnboardingConstants.gradientWarna,
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        stops: const [0.0, 0.5, 1.0],
       ),
     );
   }
@@ -145,9 +123,9 @@ class _OnboardingPageState extends State<OnboardingPage>
           onPressed: _navigasiKeLogin,
           child: Text(
             OnboardingConstants.teksLewati,
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.w600,
-              color: Theme.of(context).colorScheme.onBackground,
+              color: Colors.white,
             ),
           ),
         ),
@@ -198,7 +176,7 @@ class _OnboardingPageState extends State<OnboardingPage>
         width: 240,
         height: 240,
         decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.onBackground,
+          color: Colors.white,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -219,9 +197,10 @@ class _OnboardingPageState extends State<OnboardingPage>
   Widget _buildJudulHalaman(String judul) {
     return Text(
       judul,
-      style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+      style: const TextStyle(
+        color: Colors.white,
         fontWeight: FontWeight.w800,
-        color: Theme.of(context).colorScheme.onBackground,
+        fontSize: 26,
         letterSpacing: 0.5,
       ),
       textAlign: TextAlign.center,
@@ -231,8 +210,9 @@ class _OnboardingPageState extends State<OnboardingPage>
   Widget _buildDeskripsiHalaman(String deskripsi) {
     return Text(
       deskripsi,
-      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-        color: Theme.of(context).colorScheme.onBackground.withOpacity(0.9),
+      style: TextStyle(
+        color: Colors.white.withOpacity(0.85),
+        fontSize: 16,
         height: 1.6,
       ),
       textAlign: TextAlign.center,
@@ -250,16 +230,15 @@ class _OnboardingPageState extends State<OnboardingPage>
   }
 
   Widget _buildBulletIndikator(int index) {
+    final aktif = _halamanSekarang == index;
     return AnimatedContainer(
       duration: OnboardingConstants.durasiAnimasiIndikator,
-      width: _halamanSekarang == index ? 24 : 10,
+      width: aktif ? 24 : 10,
       height: 10,
       margin: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
-        color: _halamanSekarang == index
-            ? Theme.of(context).colorScheme.onBackground
-            : Theme.of(context).colorScheme.onBackground.withOpacity(0.4),
+        color: aktif ? Colors.white : Colors.white.withOpacity(0.4),
       ),
     );
   }
@@ -273,8 +252,8 @@ class _OnboardingPageState extends State<OnboardingPage>
         child: ElevatedButton(
           onPressed: _handleTombolLanjut,
           style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            foregroundColor: Theme.of(context).colorScheme.onSecondary,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.blue,
             elevation: 8,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -284,7 +263,8 @@ class _OnboardingPageState extends State<OnboardingPage>
             _isHalamanTerakhir
                 ? OnboardingConstants.teksTombolMulai
                 : OnboardingConstants.teksTombolLanjut,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+            style: const TextStyle(
+              color: Colors.black,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.0,
             ),

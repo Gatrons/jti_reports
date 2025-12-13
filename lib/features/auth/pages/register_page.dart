@@ -5,7 +5,7 @@ import 'package:jti_reports/core/utils/error_handler.dart';
 import 'package:jti_reports/core/widgets/custom_text_field.dart';
 import 'package:jti_reports/core/widgets/loading_button.dart';
 import 'package:jti_reports/features/auth/services/auth_service.dart';
-import 'package:jti_reports/features/home/pages/admin_page.dart';
+import 'package:jti_reports/features/admin/pages/admin_page.dart';
 import 'package:jti_reports/main.dart';
 import '../models/user_model.dart';
 import '../pages/email_verification_page.dart';
@@ -252,7 +252,7 @@ class _RegisterPageState extends State<RegisterPage>
               child: Icon(
                 Icons.arrow_back_ios_new_rounded,
                 size: 20,
-                color: _isLoading ? Colors.grey : Colors.deepPurple,
+                color: _isLoading ? Colors.grey : Colors.blue[800],
               ),
             ),
             onPressed: _isLoading ? null : _tombolKembali,
@@ -264,36 +264,17 @@ class _RegisterPageState extends State<RegisterPage>
 
   Widget _buildHeader() {
     return Padding(
-      padding: const EdgeInsets.only(top: 10),
+      padding: const EdgeInsets.only(top: 0),
       child: Align(
         alignment: Alignment.topCenter,
         child: FadeTransition(
           opacity: _animasiFade,
           child: ScaleTransition(
             scale: _animasiScale,
-            child: Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Colors.deepPurple, Colors.purpleAccent],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(25),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.deepPurple.withOpacity(0.3),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: const Icon(
-                Icons.person_add_outlined,
-                size: 40,
-                color: Colors.white,
-              ),
+            child: SizedBox(
+              width: 180,
+              height: 180,
+              child: Image.asset('lib/images/logo.png', fit: BoxFit.cover),
             ),
           ),
         ),
@@ -457,11 +438,11 @@ class _RegisterPageState extends State<RegisterPage>
                       width: 20,
                       height: 20,
                       decoration: BoxDecoration(
-                        color: _setujuSyarat ? Colors.deepPurple : Colors.white,
+                        color: _setujuSyarat ? Colors.blue[800] : Colors.white,
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(
                           color: _setujuSyarat
-                              ? Colors.deepPurple
+                              ? Colors.blue[800]!
                               : Colors.grey[400]!,
                           width: 2,
                         ),
@@ -492,7 +473,7 @@ class _RegisterPageState extends State<RegisterPage>
                             TextSpan(
                               text: 'Syarat & Ketentuan',
                               style: TextStyle(
-                                color: Colors.deepPurple,
+                                color: Colors.blue[800],
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
                               ),
@@ -507,7 +488,7 @@ class _RegisterPageState extends State<RegisterPage>
                             TextSpan(
                               text: 'Kebijakan Privasi',
                               style: TextStyle(
-                                color: Colors.deepPurple,
+                                color: Colors.blue[800],
                                 fontWeight: FontWeight.w600,
                                 fontSize: 14,
                               ),
@@ -543,7 +524,7 @@ class _RegisterPageState extends State<RegisterPage>
           isLoading: _isLoading,
           text: 'Buat Akun',
           onPressed: _prosesRegistrasi,
-          backgroundColor: Colors.deepPurple,
+          backgroundColor: Colors.blue[800]!,
           textColor: Colors.white,
         ),
       ),
@@ -567,7 +548,7 @@ class _RegisterPageState extends State<RegisterPage>
               child: Text(
                 'Masuk',
                 style: TextStyle(
-                  color: _isLoading ? Colors.grey : Colors.deepPurple,
+                  color: _isLoading ? Colors.grey : Colors.blue[800],
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -595,9 +576,9 @@ class _RegisterPageState extends State<RegisterPage>
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
                   Stack(children: [_buildTombolKembali(), _buildHeader()]),
-                  const SizedBox(height: 40),
+                  const SizedBox(height: 20),
                   _buildJudul(),
                   const SizedBox(height: 30),
 
