@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
-import 'package:jti_reports/features/lapor/pages/models/laporan_model.dart';
+import 'package:jti_reports/features/lapor/models/laporan_model.dart';
 
 class AdminNotificationModal {
   static void show(BuildContext context) {
