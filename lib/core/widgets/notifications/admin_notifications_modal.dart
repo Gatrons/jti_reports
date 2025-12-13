@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:jti_reports/features/lapor/pages/models/laporan_model.dart';
 
-class UserNotificationModal {
+class AdminNotificationModal {
   static void show(BuildContext context) {
     showModalBottomSheet(
       context: context,
@@ -33,7 +32,7 @@ class UserNotificationModal {
                 ),
                 const SizedBox(height: 15),
                 Text(
-                  "Notifikasi",
+                  "Laporan Baru Hari Ini",
                   style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -43,7 +42,7 @@ class UserNotificationModal {
                 const SizedBox(height: 10),
                 Expanded(
                   child: FutureBuilder<List<LaporanModel>>(
-                    future: _getTodayReports(),
+                    future: _getTodayCreatedReports(),
                     builder: (context, snapshot) {
                       if (snapshot.connectionState == ConnectionState.waiting) {
                         return const Center(child: CircularProgressIndicator());
@@ -54,7 +53,7 @@ class UserNotificationModal {
                       final reports = snapshot.data ?? [];
                       if (reports.isEmpty) {
                         return const Center(
-                          child: Text('Tidak ada notifikasi hari ini'),
+                          child: Text('Tidak ada laporan baru hari ini'),
                         );
                       }
                       return ListView.builder(
@@ -64,24 +63,22 @@ class UserNotificationModal {
                           final report = reports[index];
                           return ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: Colors.indigo[50],
+                              backgroundColor: Colors.orange[50],
                               child: Icon(
-                                Icons.notifications,
-                                color: Colors.blue[800],
+                                Icons.report,
+                                color: Colors.orange[800],
                               ),
                             ),
-                            title: Text("Laporan Anda diperbarui"),
+                            title: Text("Laporan Baru: ${report.jenisKerusakan}"),
                             subtitle: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text("Laporan: ${report.jenisKerusakan}"),
-                                Text("Status terbaru: ${report.status}"),
+                                Text("Tingkat Keparahan: ${report.tingkatKeparahan}"),
+                                Text("Status: ${report.status}"),
                               ],
                             ),
                             trailing: Text(
-                              DateFormat(
-                                'HH:mm',
-                              ).format(report.updatedAt ?? DateTime.now()),
+                              DateFormat('HH:mm').format(report.timestamp ?? DateTime.now()),
                               style: TextStyle(
                                 fontSize: 12,
                                 color: Colors.grey.shade600,
@@ -101,25 +98,16 @@ class UserNotificationModal {
     );
   }
 
-  static Future<List<LaporanModel>> _getTodayReports() async {
-    final uid = FirebaseAuth.instance.currentUser?.uid;
-    if (uid == null) {
-      return [];
-    }
-
+  static Future<List<LaporanModel>> _getTodayCreatedReports() async {
     final now = DateTime.now();
     final startOfDay = DateTime(now.year, now.month, now.day);
     final endOfDay = startOfDay.add(const Duration(days: 1));
 
     final query = FirebaseFirestore.instance
         .collection('reports')
-        .where('user_id', isEqualTo: uid)
-        .where(
-          'updated_at',
-          isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay),
-        )
-        .where('updated_at', isLessThan: Timestamp.fromDate(endOfDay))
-        .orderBy('updated_at', descending: true);
+        .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(startOfDay))
+        .where('timestamp', isLessThan: Timestamp.fromDate(endOfDay))
+        .orderBy('timestamp', descending: true);
 
     final snapshot = await query.get();
     return snapshot.docs.map((doc) => LaporanModel.fromDoc(doc)).toList();

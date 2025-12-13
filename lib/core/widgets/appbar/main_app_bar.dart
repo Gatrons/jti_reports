@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../notifications/user_notifications_modal.dart';
+import '../notifications/admin_notifications_modal.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -31,7 +33,14 @@ class MainAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         IconButton(
           icon: const Icon(Icons.notifications_none, color: Colors.white),
-          onPressed: () => NotificationModal.show(context),
+          onPressed: () {
+            final user = FirebaseAuth.instance.currentUser;
+            if (user != null && user.email == 'atherosmurf@gmail.com') { // Cek role admin berdasarkan email
+              AdminNotificationModal.show(context);
+            } else {
+              UserNotificationModal.show(context);
+            }
+          },
         ),
       ],
     );
