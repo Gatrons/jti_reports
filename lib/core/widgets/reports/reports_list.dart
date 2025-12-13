@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -60,64 +58,6 @@ void navigateToDetailLaporan(BuildContext context, QueryDocumentSnapshot doc) {
   );
 }
 
-Widget buildReportCard(BuildContext context, QueryDocumentSnapshot doc,
-    {void Function()? onTap}) {
-  final data = (doc.data() as Map<String, dynamic>?) ?? {};
-  final judul = data['jenis_kerusakan']?.toString() ?? 'Laporan';
-  final timestamp = data['timestamp'];
-  final tanggal = formatTimestamp(timestamp);
-  final status = data['status']?.toString() ?? 'Diajukan';
-  Color warna;
-  switch (status.toLowerCase()) {
-    case 'selesai':
-      warna = Colors.green;
-      break;
-    case 'diproses':
-      warna = Colors.orange;
-      break;
-    default:
-      warna = Colors.redAccent;
-  }
-
-  return Container(
-    margin: const EdgeInsets.only(bottom: 14),
-    decoration: BoxDecoration(
-      color: Colors.grey[100],
-      borderRadius: BorderRadius.circular(16),
-      boxShadow: [
-        BoxShadow(
-          color: Colors.indigo.shade200.withOpacity(0.3),
-          blurRadius: 6,
-          offset: const Offset(0, 3),
-        ),
-      ],
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ListTile(
-          onTap: onTap,
-          leading: CircleAvatar(
-            radius: 26,
-            backgroundColor: warna.withOpacity(0.2),
-            child: Icon(Icons.report, color: warna, size: 28),
-          ),
-          title: Text(judul, style: const TextStyle(fontWeight: FontWeight.bold)),
-          subtitle: Text(tanggal),
-          trailing: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: warna.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Text(status, style: TextStyle(color: warna, fontWeight: FontWeight.bold)),
-          ),
-        ),
-      ],
-    ),
-  );
-}
-
 class ReportsList extends StatelessWidget {
   final String? userId;
   final bool clientSort; // jika true, urutkan di client tanpa orderBy di query
@@ -125,6 +65,28 @@ class ReportsList extends StatelessWidget {
 
   const ReportsList({Key? key, this.userId, this.clientSort = false, this.onCardTap})
       : super(key: key);
+
+  Color _statusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'selesai':
+        return const Color(0xFF388E3C);
+      case 'diproses':
+        return const Color(0xFFF57C00);
+      default:
+        return const Color(0xFFD32F2F);
+    }
+  }
+
+  IconData _statusIcon(String status) {
+    switch (status.toLowerCase()) {
+      case 'selesai':
+        return Icons.check_circle_outline;
+      case 'diproses':
+        return Icons.hourglass_top;
+      default:
+        return Icons.error_outline;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -173,6 +135,55 @@ class ReportsList extends StatelessWidget {
               .toList(),
         );
       },
+    );
+  }
+
+  Widget buildReportCard(BuildContext context, QueryDocumentSnapshot doc,
+    {void Function()? onTap}) {
+    final data = (doc.data() as Map<String, dynamic>?) ?? {};
+    final judul = data['jenis_kerusakan']?.toString() ?? 'Laporan';
+    final timestamp = data['timestamp'];
+    final tanggal = formatTimestamp(timestamp);
+    final status = data['status']?.toString() ?? 'Diajukan';
+    final warna = _statusColor(status);
+    final icon = _statusIcon(status);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.indigo.shade200.withOpacity(0.3),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ListTile(
+            onTap: onTap,
+            leading: CircleAvatar(
+              radius: 26,
+              backgroundColor: warna.withOpacity(0.2),
+              child: Icon(icon, color: warna, size: 28),
+            ),
+            title: Text(judul, style: const TextStyle(fontWeight: FontWeight.bold)),
+            subtitle: Text(tanggal),
+            trailing: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: warna.withOpacity(0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(status, style: TextStyle(color: warna, fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
