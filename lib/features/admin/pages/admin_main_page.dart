@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:curved_navigation_bar/curved_navigation_bar.dart';
 import 'package:jti_reports/features/admin/pages/admin_page.dart';
 import 'package:jti_reports/features/admin/pages/admin_riwayat_page.dart';
+import 'package:jti_reports/features/admin/pages/admin_setting_page.dart';
 
 class AdminMainPage extends StatefulWidget {
   const AdminMainPage({super.key});
@@ -24,7 +25,7 @@ class _AdminMainPageState extends State<AdminMainPage> {
     final List<Widget> adminPages = [
       AdminRiwayatPage(onTabChange: _changeTab),
       AdminHomePage(onTabChange: _changeTab),
-      AdminRiwayatPage(onTabChange: _changeTab),
+      AdminSettingPage(onTabChange: _changeTab),
     ];
 
     return Scaffold(
@@ -40,7 +41,7 @@ class _AdminMainPageState extends State<AdminMainPage> {
         items: const <Widget>[
           Icon(Icons.history, size: 30, color: Colors.white),
           Icon(Icons.home, size: 35, color: Colors.white),
-          Icon(Icons.people, size: 30, color: Colors.white),
+          Icon(Icons.settings, size: 30, color: Colors.white),
         ],
         onTap: (index) => _changeTab(index),
       ),

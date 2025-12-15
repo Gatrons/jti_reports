@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:jti_reports/core/widgets/appbar/main_app_bar.dart';
-import 'package:jti_reports/core/widgets/drawer/main_drawer.dart';
+import 'package:jti_reports/core/widgets/appbar/main_app_bar_admin.dart';
 
 class AdminHomePage extends StatefulWidget {
   final void Function(int index) onTabChange;
@@ -119,8 +118,7 @@ class _AdminHomePageState extends State<AdminHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const MainDrawer(),
-      appBar: const MainAppBar(title: 'Beranda'),
+      appBar: const MainAppBarAdmin(title: 'Beranda'),
       backgroundColor: Colors.indigo[50],
       body: Padding(
         padding: const EdgeInsets.all(16),
