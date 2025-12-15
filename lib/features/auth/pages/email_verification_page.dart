@@ -118,14 +118,14 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                   height: 120,
                   decoration: BoxDecoration(
                     gradient: const LinearGradient(
-                      colors: [Colors.deepPurple, Colors.purpleAccent],
+                      colors: [Colors.blue, Colors.blueAccent],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
                     borderRadius: BorderRadius.circular(25),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.deepPurple.withAlpha(76),
+                        color: Colors.blue[800]!,
                         blurRadius: 20,
                         offset: const Offset(0, 10),
                       ),
@@ -164,15 +164,15 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.deepPurple.withAlpha(25),
+                    color: Colors.blue.withAlpha(25),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
                     email,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.deepPurple,
+                      color: Colors.blue[800],
                     ),
                     textAlign: TextAlign.center,
                   ),
@@ -345,7 +345,7 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
         isLoading: _isLoading,
         text: 'Kirim Ulang Email',
         onPressed: _kirimUlangEmailVerifikasi,
-        backgroundColor: Colors.deepPurple,
+        backgroundColor: Colors.blue[800]!,
         textColor: Colors.white,
       );
     }
