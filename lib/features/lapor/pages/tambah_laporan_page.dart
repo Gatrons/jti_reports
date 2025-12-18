@@ -85,19 +85,27 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
         child: Wrap(
           children: [
             ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Ambil Foto dari Kamera'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickCameraImage();
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.videocam),
+              title: const Text('Rekam Video'),
+              onTap: () async {
+                Navigator.pop(context);
+                await _pickCameraVideo();
+              },
+            ),
+            ListTile(
               leading: const Icon(Icons.photo),
               title: const Text('Pilih Foto dari Galeri'),
               onTap: () async {
                 Navigator.pop(context);
                 await _pickImages();
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam),
-              title: const Text('Pilih Video'),
-              onTap: () async {
-                Navigator.pop(context);
-                await _pickVideo();
               },
             ),
             ListTile(
@@ -520,5 +528,59 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
         ),
       ),
     );
+  }
+
+  Future<void> _pickCameraImage() async {
+    final remaining = _maxMedia - _media.length;
+    if (remaining <= 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Maksimum 3 media")));
+      return;
+    }
+
+    try {
+      final XFile? picked = await _picker.pickImage(
+        source: ImageSource.camera,
+        imageQuality: 80,
+      );
+
+      if (picked == null) return;
+
+      setState(() {
+        _media.add(picked);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal membuka kamera: $e')));
+    }
+  }
+
+  Future<void> _pickCameraVideo() async {
+    final remaining = _maxMedia - _media.length;
+    if (remaining <= 0) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Maksimum 3 media")));
+      return;
+    }
+
+    try {
+      final XFile? picked = await _picker.pickVideo(
+        source: ImageSource.camera,
+        maxDuration: const Duration(seconds: 60),
+      );
+
+      if (picked == null) return;
+
+      setState(() {
+        _media.add(picked);
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal membuka kamera: $e')));
+    }
   }
 }
