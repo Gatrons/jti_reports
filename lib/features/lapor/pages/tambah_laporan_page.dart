@@ -221,7 +221,7 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
       );
       return;
     }
-    
+
     try {
       // Simpan media ke Supabase Storage
       final supabase = Supabase.instance.client;
@@ -256,6 +256,7 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
         'status': 'Diajukan',
         'user_id': FirebaseAuth.instance.currentUser!.uid,
         'timestamp': FieldValue.serverTimestamp(),
+        'is_read': true,
       });
 
       ScaffoldMessenger.of(

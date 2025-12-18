@@ -194,7 +194,8 @@ class _AdminReportsListState extends State<AdminReportsList> {
   Future<void> _updateStatus(String docId, String newStatus) async {
     await FirebaseFirestore.instance.collection('reports').doc(docId).update({
       'status': newStatus,
-      'updated_at': FieldValue.serverTimestamp(), // optional tapi bagus
+      'updated_at': FieldValue.serverTimestamp(),
+      'is_read': false,
     });
   }
 

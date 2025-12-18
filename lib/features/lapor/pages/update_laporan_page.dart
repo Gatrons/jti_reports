@@ -300,6 +300,7 @@ class _UpdateLaporanPageState extends State<UpdateLaporanPage> {
         'media_paths': finalMediaUrls,
         'status': 'Diajukan',
         'updated_at': FieldValue.serverTimestamp(),
+        'is_read': true,
       });
 
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Laporan berhasil diperbarui')));
