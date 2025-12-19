@@ -39,6 +39,10 @@ void navigateToDetailLaporan(BuildContext context, QueryDocumentSnapshot doc) {
           ?.map((e) => e.toString())
           .toList() ??
       [];
+  final buktiPaths = (data['bukti_paths'] as List<dynamic>?)
+          ?.map((e) => e.toString())
+          .toList() ??
+      [];
 
   Navigator.push(
     context,
@@ -53,6 +57,7 @@ void navigateToDetailLaporan(BuildContext context, QueryDocumentSnapshot doc) {
         lokasi: lokasi,
         mediaPaths: mediaPaths,
         docId: doc.id,
+        buktiPaths: buktiPaths,
       ),
     ),
   );
