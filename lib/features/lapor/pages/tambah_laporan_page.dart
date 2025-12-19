@@ -265,6 +265,7 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
         'user_id': FirebaseAuth.instance.currentUser!.uid,
         'timestamp': FieldValue.serverTimestamp(),
         'is_read': true,
+        'is_admin_read': false,
       });
 
       ScaffoldMessenger.of(
