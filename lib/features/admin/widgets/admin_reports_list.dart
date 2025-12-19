@@ -61,6 +61,8 @@ class _AdminReportsListState extends State<AdminReportsList> {
     'Selesai',
   ];
 
+  String _statusNow = 'Diajukan';
+
   List<String> _keparahanOptions = const ['Semua'];
   List<String> _jenisOptions = const ['Semua'];
 
@@ -192,12 +194,24 @@ class _AdminReportsListState extends State<AdminReportsList> {
         nama.contains(q);
   }
 
+  List<String> _getStatusOptions() {
+    if (_statusNow == 'Diajukan') {
+      return ['Diajukan', 'Diproses', 'Selesai'];
+    } else if (_statusNow == 'Diproses') {
+      return ['Diproses', 'Selesai'];
+    } else {
+      return ['Selesai'];
+    }
+  }
+
   Future<void> _updateStatus(String docId, String newStatus) async {
-    await FirebaseFirestore.instance.collection('reports').doc(docId).update({
-      'status': newStatus,
-      'updated_at': FieldValue.serverTimestamp(),
-      'is_read': false,
-    });
+    if (_getStatusOptions().contains(newStatus)) {
+      await FirebaseFirestore.instance.collection('reports').doc(docId).update({
+        'status': newStatus,
+        'updated_at': FieldValue.serverTimestamp(),
+        'is_read': false,
+      });
+    }
   }
 
   @override
@@ -283,6 +297,7 @@ class _AdminReportsListState extends State<AdminReportsList> {
                               ?.cast<String>()
                               .toList() ??
                           [];
+                      _statusNow = status;
 
                       return _AdminReportCard(
                         docId: doc.id,
@@ -299,7 +314,7 @@ class _AdminReportsListState extends State<AdminReportsList> {
                         mediaPaths: mediaPaths,
 
                         // ✅ admin edit status via dropdown
-                        statusItems: _statusOptions,
+                        statusItems: _getStatusOptions(),
                         onStatusChanged: (newStatus) async {
                           try {
                             await _updateStatus(doc.id, newStatus);
