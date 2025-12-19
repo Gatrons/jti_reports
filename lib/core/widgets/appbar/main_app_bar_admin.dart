@@ -38,8 +38,8 @@ class MainAppBarAdmin extends StatelessWidget implements PreferredSizeWidget {
               onPressed: () async {
                 final user = FirebaseAuth.instance.currentUser;
 
-                if (user != null && user.email == 'atherosmurf@gmail.com') {
-                  AdminNotificationModal.show(context);                  
+                if (user != null && user.email == 'admin@admin.com') {
+                  AdminNotificationModal.show(context);
 
                   // 🔥 TANDAI SEMUA NOTIFIKASI SUDAH DIBACA
                   final unreadDocs = snapshot.data?.docs ?? [];
