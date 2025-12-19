@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:jti_reports/features/riwayat/pages/detail_laporan_page.dart';
 
 /// =======================
 ///  USER NAME CACHE
@@ -277,8 +278,14 @@ class _AdminReportsListState extends State<AdminReportsList> {
                       final lokasi = _lokasiToDisplay(data['lokasi']);
                       final tanggal = _formatTanggal(data['timestamp']);
                       final thumb = _thumbFromMedia(data['media_paths']);
+                      final mediaPaths =
+                          (data['media_paths'] as List<dynamic>?)
+                              ?.cast<String>()
+                              .toList() ??
+                          [];
 
                       return _AdminReportCard(
+                        docId: doc.id,
                         title: judul,
                         deskripsi: deskripsi,
                         lokasi: lokasi,
@@ -289,6 +296,7 @@ class _AdminReportsListState extends State<AdminReportsList> {
                         keparahan: keparahan,
                         severityColor: _severityColor(keparahan),
                         thumbUrl: thumb,
+                        mediaPaths: mediaPaths,
 
                         // ✅ admin edit status via dropdown
                         statusItems: _statusOptions,
@@ -446,6 +454,7 @@ class _Dropdown extends StatelessWidget {
 }
 
 class _AdminReportCard extends StatelessWidget {
+  final String docId;
   final String title;
   final String deskripsi;
   final String lokasi;
@@ -459,12 +468,14 @@ class _AdminReportCard extends StatelessWidget {
   final Color severityColor;
 
   final String? thumbUrl;
+  final List<String> mediaPaths;
 
   // admin status dropdown
   final List<String> statusItems;
   final ValueChanged<String> onStatusChanged;
 
   const _AdminReportCard({
+    required this.docId,
     required this.title,
     required this.deskripsi,
     required this.lokasi,
@@ -475,6 +486,7 @@ class _AdminReportCard extends StatelessWidget {
     required this.keparahan,
     required this.severityColor,
     required this.thumbUrl,
+    required this.mediaPaths,
     required this.statusItems,
     required this.onStatusChanged,
   });
@@ -486,128 +498,148 @@ class _AdminReportCard extends StatelessWidget {
         ? status
         : statusItems.first;
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.indigo.shade100),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.indigo.shade100.withOpacity(0.35),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => DetailLaporanPage(
+              docId: docId,
+              title: title,
+              date: tanggal,
+              status: status,
+              statusColor: statusColor,
+              deskripsi: deskripsi,
+              keparahan: keparahan,
+              lokasi: lokasi,
+              mediaPaths: mediaPaths.isNotEmpty ? mediaPaths : null,
+            ),
           ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _Thumb(url: thumbUrl),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 15,
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(18),
+          border: Border.all(color: Colors.indigo.shade100),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.indigo.shade100.withOpacity(0.35),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _Thumb(url: thumbUrl),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  deskripsi,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(color: Colors.grey[800]),
-                ),
-                const SizedBox(height: 10),
+                  const SizedBox(height: 6),
+                  Text(
+                    deskripsi,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(color: Colors.grey[800]),
+                  ),
+                  const SizedBox(height: 10),
 
-                // badges info
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 8,
-                  children: [
-                    _Pill(
-                      text: keparahan,
-                      color: severityColor,
-                      icon: Icons.warning_amber_outlined,
-                    ),
-                    _Pill(
-                      text: lokasi,
-                      color: Colors.indigo,
-                      icon: Icons.place_outlined,
-                    ),
-                    _Pill(
-                      text: tanggal,
-                      color: Colors.grey[700]!,
-                      icon: Icons.schedule,
-                    ),
-                    _Pill(
-                      text: userName,
-                      color: Colors.blueGrey,
-                      icon: Icons.person_outline,
-                    ),
-                  ],
-                ),
+                  // badges info
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      _Pill(
+                        text: keparahan,
+                        color: severityColor,
+                        icon: Icons.warning_amber_outlined,
+                      ),
+                      _Pill(
+                        text: lokasi,
+                        color: Colors.indigo,
+                        icon: Icons.place_outlined,
+                      ),
+                      _Pill(
+                        text: tanggal,
+                        color: Colors.grey[700]!,
+                        icon: Icons.schedule,
+                      ),
+                      _Pill(
+                        text: userName,
+                        color: Colors.blueGrey,
+                        icon: Icons.person_outline,
+                      ),
+                    ],
+                  ),
 
-                const SizedBox(height: 12),
+                  const SizedBox(height: 12),
 
-                // ✅ dropdown status admin (hanya ini yang bisa diubah)
-                Row(
-                  children: [
-                    Text(
-                      'Status:',
-                      style: TextStyle(color: Colors.grey[700], fontSize: 12),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: statusColor.withValues(alpha: 0.10),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: statusColor.withValues(alpha: 0.25),
-                          ),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<String>(
-                            value: currentStatus,
-                            isExpanded: true,
+                  // ✅ dropdown status admin (hanya ini yang bisa diubah)
+                  Row(
+                    children: [
+                      Text(
+                        'Status:',
+                        style: TextStyle(color: Colors.grey[700], fontSize: 12),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.10),
                             borderRadius: BorderRadius.circular(12),
-                            iconEnabledColor: statusColor,
-                            items: statusItems
-                                .map(
-                                  (e) => DropdownMenuItem(
-                                    value: e,
-                                    child: Text(
-                                      e,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        color: statusColor,
+                            border: Border.all(
+                              color: statusColor.withValues(alpha: 0.25),
+                            ),
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: currentStatus,
+                              isExpanded: true,
+                              borderRadius: BorderRadius.circular(12),
+                              iconEnabledColor: statusColor,
+                              items: statusItems
+                                  .map(
+                                    (e) => DropdownMenuItem(
+                                      value: e,
+                                      child: Text(
+                                        e,
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w800,
+                                          color: statusColor,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                )
-                                .toList(),
-                            onChanged: (v) {
-                              if (v != null && v != status) {
-                                onStatusChanged(v);
-                              }
-                            },
+                                  )
+                                  .toList(),
+                              onChanged: (v) {
+                                if (v != null && v != status) {
+                                  onStatusChanged(v);
+                                }
+                              },
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
