@@ -9,7 +9,7 @@ JTI Report adalah aplikasi mobile berbasis **Flutter (Android)** yang digunakan 
 Aplikasi didistribusikan dalam bentuk file **APK** melalui Google Drive.
 
 ### Langkah Instalasi
-1. Unduh file **[JTI_Report.apk](https://drive.google.com/link)**
+1. Unduh file **[JTI_Report.apk](https://drive.google.com/drive/folders/1KKzRCncZ8W3iXzUoFi4PneTrQW7rTH6C?usp=drive_link)**
 2. Buka **Pengaturan > Keamanan** di perangkat Android
 3. Aktifkan **Izinkan instalasi dari sumber tidak dikenal**
 4. Buka file APK yang telah diunduh
