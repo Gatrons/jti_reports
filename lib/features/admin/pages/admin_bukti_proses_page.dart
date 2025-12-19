@@ -1,32 +1,35 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
-import '../../../core/widgets/appbar/main_app_bar.dart';
-import '../../../core/widgets/drawer/main_drawer.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-class TambahlaporanPage extends StatefulWidget {
-  const TambahlaporanPage({
-    super.key,
-    required void Function(int index) onTabChange,
-  });
+class AdminBuktiProsesPage extends StatefulWidget {
+  final String docId;
+  final String newStatus;
+
+  const AdminBuktiProsesPage({
+    Key? key,
+    required this.docId,
+    required this.newStatus,
+  }) : super(key: key);
 
   @override
-  State<TambahlaporanPage> createState() => _TambahlaporanPageState();
+  State<AdminBuktiProsesPage> createState() => AdminBuktiProsesPageState();
 }
 
-class _TambahlaporanPageState extends State<TambahlaporanPage> {
-  // Controllers
-  final TextEditingController _jenisKerusakanController =
-      TextEditingController();
-  final TextEditingController _deskripsiController = TextEditingController();
-  final TextEditingController _lokasiController = TextEditingController();
+class AdminBuktiProsesPageState extends State<AdminBuktiProsesPage> {
+  late String status;
 
-  String? _selectedSeverity;
+  @override
+  void initState() {
+    super.initState();
+    status = widget.newStatus;
+  }
+
+
   final ImagePicker _picker = ImagePicker();
   final int _maxMedia = 3;
   List<XFile> _media = [];
@@ -185,58 +188,28 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
     );
   }
 
-  final List<String> _severityOptions = [
-    'Rendah',
-    'Sedang',
-    'Tinggi',
-    'Bahaya',
-  ];
-
   @override
   void dispose() {
-    _jenisKerusakanController.dispose();
-    _deskripsiController.dispose();
-    _lokasiController.dispose();
     super.dispose();
   }
 
-  Future<void> uploadForm() async {
-    // Validasi semua field harus terisi
-    if (_jenisKerusakanController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Jenis kerusakan harus diisi')),
-      );
-      return;
-    }
-
-    if (_lokasiController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Lokasi fasilitas harus diisi')),
-      );
-      return;
-    }
-
-    if (_deskripsiController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Deskripsi kerusakan harus diisi')),
-      );
-      return;
-    }
-
-    if (_selectedSeverity == null || _selectedSeverity!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tingkat keparahan harus dipilih')),
-      );
-      return;
-    }
-
+  Future<void> _submitBukti() async {
     try {
-      // Simpan media ke Supabase Storage
+      if (_media.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Silakan pilih minimal satu media sebagai bukti proses',
+            ),
+          ),
+        );
+        return;
+      }
+
       final supabase = Supabase.instance.client;
       const String bucket = 'laporan-media';
       List<String> mediaUrls = [];
 
-      // Upload setiap media ke Supabase storage dan ambil public URL
       for (var media in _media) {
         final file = File(media.path);
         final filename =
@@ -254,44 +227,51 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
         mediaUrls.add(publicUrl);
       }
 
-      // Simpan data laporan ke Firestore
-      await FirebaseFirestore.instance.collection('reports').add({
-        'jenis_kerusakan': _jenisKerusakanController.text,
-        'deskripsi': _deskripsiController.text,
-        'lokasi': _lokasiController.text,
-        'tingkat_keparahan': _selectedSeverity,
-        'media_paths': mediaUrls,
-        'status': 'Diajukan',
-        'user_id': FirebaseAuth.instance.currentUser!.uid,
-        'timestamp': FieldValue.serverTimestamp(),
-        'is_read': true,
-        'is_admin_read': false,
-      });
+      // update Firestore doc
+      await FirebaseFirestore.instance
+          .collection('reports')
+          .doc(widget.docId)
+          .update({
+            'bukti_paths': mediaUrls,
+            'status': status,
+            'updated_at': FieldValue.serverTimestamp(),
+            'is_read': false,
+          });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Laporan berhasil dikirim")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Status diubah: $status')),
+      );
+      Navigator.of(context).pop(true);
     } catch (e) {
       ScaffoldMessenger.of(
         context,
-      ).showSnackBar(SnackBar(content: Text('Gagal mengirim laporan: $e')));
+      ).showSnackBar(SnackBar(content: Text('Gagal memperbarui laporan: $e')));
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const MainDrawer(),
-      appBar: const MainAppBar(title: 'Lapor Fasilitas'),
+      appBar: AppBar(
+        iconTheme: const IconThemeData(color: Colors.white),
+        title: Text(
+          'Upload Bukti Proses',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        backgroundColor: Colors.blue[800],
+        centerTitle: true,
+      ),
       backgroundColor: Colors.indigo[50],
       body: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 20, 20, 100),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Judul Besar
             Text(
-              "Detail Laporan",
+              'Tambahkan Gambar / Video',
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
@@ -299,78 +279,6 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
               ),
             ),
             const SizedBox(height: 20),
-
-            // 1. Jenis Kerusakan
-            _buildLabel("Jenis Kerusakan"),
-            _buildTextField(
-              controller: _jenisKerusakanController,
-              hint: "Contoh: AC Mati, Kursi Patah, ...",
-              icon: Icons.build,
-            ),
-            const SizedBox(height: 15),
-
-            // 2. Lokasi Fasilitas (Read Only - Tap to Pick)
-            _buildLabel("Lokasi Fasilitas"),
-            _buildTextField(
-              controller: _lokasiController,
-              hint: "Contoh: LPR1-LT7B",
-              icon: Icons.location_on,
-            ),
-            const SizedBox(height: 15),
-
-            // 3. Deskripsi Kerusakan
-            _buildLabel("Deskripsi Kerusakan"),
-            _buildTextField(
-              controller: _deskripsiController,
-              hint: "Tuliskan penjelasan singkat kerusakan",
-              icon: Icons.description,
-            ),
-            const SizedBox(height: 15),
-
-            // 4. Tingkat Keparahan (Dropdown)
-            _buildLabel("Tingkat Keparahan"),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey),
-              ),
-              child: DropdownButtonHideUnderline(
-                child: DropdownButton<String>(
-                  isExpanded: true,
-                  value: _selectedSeverity,
-                  hint: Row(
-                    children: [
-                      Icon(
-                        Icons.warning_amber_rounded,
-                        color: Colors.blue[800],
-                        size: 22,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        "Pilih tingkat keparahan",
-                        style: TextStyle(color: Colors.grey[600], fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  icon: Icon(Icons.arrow_drop_down, color: Colors.blue[800]),
-                  items: _severityOptions.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(
-                        value,
-                        style: TextStyle(color: Colors.blue[800]),
-                      ),
-                    );
-                  }).toList(),
-                  onChanged: (val) => setState(() => _selectedSeverity = val),
-                ),
-              ),
-            ),
-            const SizedBox(height: 25),
-
-            // 5. Upload Foto/Media Area
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
@@ -446,23 +354,13 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 40),
 
-            // Tombol Kirim
+            const SizedBox(height: 40),
             SizedBox(
-              width: double.infinity,
               height: 55,
+              width: double.infinity,
               child: ElevatedButton(
-                onPressed: () async {
-                  await uploadForm();
-                  setState(() {
-                    _jenisKerusakanController.clear();
-                    _lokasiController.clear();
-                    _deskripsiController.clear();
-                    _selectedSeverity = null;
-                    _media.clear();
-                  });
-                },
+                onPressed: _submitBukti,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue[800],
                   shape: RoundedRectangleBorder(
@@ -471,7 +369,7 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
                   elevation: 2,
                 ),
                 child: const Text(
-                  "Kirim Laporan",
+                  'Simpan',
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 18,
@@ -486,8 +384,6 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
     );
   }
 
-  // --- WIDGET BUILDERS ---
-
   Widget _buildLabel(String text) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0, left: 4.0),
@@ -497,35 +393,6 @@ class _TambahlaporanPageState extends State<TambahlaporanPage> {
           color: Colors.blue[800],
           fontWeight: FontWeight.bold,
           fontSize: 15,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String hint,
-    required IconData icon,
-    bool isLocation = false,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey[100], // Warna background input field
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey),
-      ),
-      child: TextField(
-        controller: controller,
-        readOnly: isLocation, // Readonly jika ini field lokasi
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(color: Colors.grey[600], fontSize: 14),
-          prefixIcon: Icon(icon, color: Colors.blue[800], size: 22),
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(
-            vertical: 15,
-            horizontal: 10,
-          ),
         ),
       ),
     );

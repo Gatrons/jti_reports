@@ -105,7 +105,7 @@ class _LoginPageState extends State<LoginPage>
       if (!mounted) return;
 
       if (userModel != null) {
-        if (!userModel.emailVerified) {
+        if (userModel.role != 'admin' && !userModel.emailVerified) {
           _tampilkanSnackbar(
             "Email belum diverifikasi! Cek email Anda.",
             Colors.orange,
